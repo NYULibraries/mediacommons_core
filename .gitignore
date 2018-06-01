@@ -2,6 +2,13 @@
 drupal/sites/default
 drupal/sites/mediacommons.futureofthebook.org.mediacommons
 
+# Ignore modules/themes/profiles related to MediaCommons project
+drupal/sites/all/themes/mediacommons
+drupal/sites/all/modules/mediacommons_modules
+drupal/profiles/mediacommons_umbrella
+drupal/profiles/mediacommons_projects
+drupal/sites/all/themes/mediacommons_admin
+
 # Ignore configuration files that may contain sensitive information.
 drupal/sites/*/*settings*.php
 drupal/sites/example.sites.php
