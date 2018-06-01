@@ -1,12 +1,13 @@
 # Ignore site
-sites/default
+drupal/sites/default
+drupal/sites/mediacommons.futureofthebook.org.mediacommons
 
 # Ignore configuration files that may contain sensitive information.
-sites/*/*settings*.php
-sites/example.sites.php
+drupal/sites/*/*settings*.php
+drupal/sites/example.sites.php
 
 # Ignore paths that contain generated content.
-files/
-sites/*/files
-sites/*/private
-sites/*/translations
+drupal/files/
+drupal/sites/*/files
+drupal/sites/*/private
+drupal/sites/*/translations
