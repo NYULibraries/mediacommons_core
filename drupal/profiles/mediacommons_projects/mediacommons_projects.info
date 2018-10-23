@@ -1,0 +1,7 @@
+name = MediaCommons Install Profile
+description = Installation Profile for MediaCommons projects
+core = 7.x
+exclusive = true
+
+dependencies[] = mc
+dependencies[] = mediacommons_homepage_featured
