@@ -1,0 +1,252 @@
+<?php
+
+// Packaging a distribution on Drupal.org
+// http://drupal.org/node/642116
+
+// https://www.drupal.org/node/1022020
+
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ *
+ * @see system_install()
+ */
+function mediacommons_umbrella_install() {
+
+  $default_theme = 'mediacommons';
+
+  $admin_theme = 'mediacommons_admin';
+
+  // Enable some standard blocks.
+
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'search',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+  	  'module' => 'mediacommons_blocks',
+      'delta' => 'mc_footer',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'footer',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'mediacommons_fieldguide',
+      'delta' => 'mc_fieldguide',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'umb_homepage_sidebar',
+      'cache' => -1,
+      'pages' => '<front>',
+      'visibility' => 1,
+    ),
+    // View: Single Hub latest
+    array(
+      'module' => 'views',
+      'delta' => 'mc_home_lede-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'umb_homepage_top',
+      'cache' => -1,
+      'pages' => '<front>',      
+      'visibility' => 1,
+    ),
+    // View: 6 most recent FPP
+    array(
+      'module' => 'views',
+      'delta' => 'recent_6_front_page_posts-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'umb_homepage_bottom',
+      'cache' => -1,
+      'pages' => '<front>',
+      'visibility' => 1,
+    ),
+    //array(
+    //  'module' => 'menu',
+    //  'delta' => 'menu-mcglobalnav',
+    //  'theme' => $default_theme,
+    //  'status' => 1,
+    //  'weight' => 0,
+    //  'region' => 'globalnav',
+    //  'pages' => '',
+    //  'cache' => -1,
+    //  'visibility' => 0,
+    //),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+  );
+
+  $fields = array(
+    'module', 
+    'delta', 
+    'theme', 
+    'status', 
+    'weight', 
+    'region', 
+    'pages', 
+    'cache', 
+    'visibility'
+  );
+
+  $query = db_insert('block')->fields($fields);
+
+  foreach ($blocks as $block) $query->values($block);
+  
+  $query->execute();
+
+  // Create a Home link in the main menu.
+
+  $item = array(
+    'link_title' => st("home"),
+    'link_path' => '<front>',
+    'menu_name' => 'main-menu',
+  );
+
+  menu_link_save($item);
+
+  // Update the menu router information.
+  menu_rebuild();
+
+  // Enable the admin theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $admin_theme)
+    ->execute();
+
+  // Enable the Zen theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', 'zen')
+    ->execute();
+
+  // Enable the mediacommons theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $default_theme)
+    ->execute();
+
+  // Enable user picture support and set the default to a square thumbnail option.
+  variable_set('user_pictures', '1');
+
+  variable_set('user_picture_dimensions', '1024x1024');
+
+  variable_set('user_picture_file_size', '800');
+
+  variable_set('user_picture_style', 'thumbnail');
+
+  // Allow visitor account creation with administrative approval.
+  variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
+
+  variable_set('admin_theme',  $admin_theme);
+
+  variable_set('theme_default', $default_theme);
+
+  variable_set('node_admin_theme', '1');
+
+}

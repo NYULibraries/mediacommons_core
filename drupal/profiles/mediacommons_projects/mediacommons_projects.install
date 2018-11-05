@@ -1,0 +1,299 @@
+<?php
+
+// Packaging a distribution on Drupal.org
+// http://drupal.org/node/642116
+
+// https://www.drupal.org/node/1022020
+
+/**
+ * Implements hook_install().
+ *
+ * Perform actions to set up the site for this profile.
+ *
+ * @see system_install()
+ */
+function mediacommons_projects_install() {
+
+  $default_theme = 'mediacommons';
+
+  $admin_theme = 'mediacommons_admin';
+
+  // Enable some standard blocks.
+  $blocks = array(
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => -1,
+      'region' => 'search',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+  	  'module' => 'mediacommons_blocks',
+      'delta' => 'mc_footer',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'footer',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    // View: Single Hub latest
+    array(
+      'module' => 'views',
+      'delta' => 'single_hub_latest-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'homepage_top',
+      'pages' => '<front>',
+      'visibility' => 1,
+      'cache' => -1,
+    ),
+    // View: 6 most recent hubs
+    array(
+      'module' => 'views',
+      'delta' => 'recent_6_hubs-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'homepage_bottom',
+      'pages' => '<front>',
+      'cache' => -1,
+      'visibility' => 1,      
+    ),
+    // View: Recent Comments
+    array(
+      'module' => 'views',
+      'delta' => 'mc_recent_comments-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    // View: List of all Hubs
+    array(
+      'module' => 'views',
+      'delta' => 'contributors_this_hub-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'sidebar_first',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    // View: Top Organizations Widget
+    array(
+      'module' => 'views',
+      'delta' => 'top_organizations-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 3,
+      'region' => 'homepage_sidebar',
+      'pages' => '<front>',
+      'cache' => -1,
+      'visibility' => 1,
+    ),
+    // View: Top Tags Widget
+    array(
+      'module' => 'views',
+      'delta' => 'tags-block',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 2,
+      'region' => 'homepage_sidebar',
+      'pages' => '<front>',
+      'cache' => -1,
+      'visibility' => 1,
+    ),
+    // View: Top Tags Widget for tag page
+    array(
+      'module' => 'views',
+      'delta' => 'tags-block_1',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'sidebar_tagpages',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    //array(
+    //  'module' => 'menu',
+    //  'delta' => 'menu-mcglobalnav',
+    //  'theme' => $default_theme,
+    //  'status' => 1,
+    //  'weight' => 0,
+    //  'region' => 'globalnav',
+    //  'pages' => '',
+    //  'cache' => -1,
+    //  'visibility' => 0,
+    //),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $default_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'node',
+      'delta' => 'recent',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'dashboard_main',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'main',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'system',
+      'delta' => 'help',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'help',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'login',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 10,
+      'region' => 'content',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'user',
+      'delta' => 'new',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => 0,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+    array(
+      'module' => 'search',
+      'delta' => 'form',
+      'theme' => $admin_theme,
+      'status' => 1,
+      'weight' => -10,
+      'region' => 'dashboard_sidebar',
+      'pages' => '',
+      'cache' => -1,
+      'visibility' => 0,
+    ),
+  );
+
+  $fields = array(
+    'module', 
+    'delta', 
+    'theme', 
+    'status', 
+    'weight', 
+    'region', 
+    'pages', 
+    'cache',
+    'visibility',
+  );
+
+  $query = db_insert('block')->fields($fields);
+
+  foreach ($blocks as $block) $query->values($block);
+
+  $query->execute();
+
+  // Create a Home link in the main menu.
+  $item = array(
+    'link_title' => st('Home'),
+    'link_path' => '<front>',
+    'menu_name' => 'main-menu',
+  );
+
+  menu_link_save($item);
+
+  // Update the menu router information.
+  menu_rebuild();
+
+  // Enable the admin theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $admin_theme)
+    ->execute();
+
+  // Enable the Zen theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', 'zen')
+    ->execute();
+
+  // Enable the mediacommons theme.
+  db_update('system')
+    ->fields(array('status' => 1))
+    ->condition('type', 'theme')
+    ->condition('name', $default_theme)
+    ->execute();
+
+  // Enable user picture support and set the default to a square thumbnail option.
+  variable_set('user_pictures', '1');
+  
+  variable_set('user_picture_dimensions', '1024x1024');
+  
+  variable_set('user_picture_file_size', '800');
+  
+  variable_set('user_picture_style', 'thumbnail');
+
+  // Allow visitor account creation with administrative approval.
+  variable_set('user_register', USER_REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);    
+
+  variable_set('admin_theme',  $admin_theme);
+
+  variable_set('theme_default', $default_theme);
+
+  variable_set('node_admin_theme', '1');
+
+}

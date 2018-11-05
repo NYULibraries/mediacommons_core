@@ -1,0 +1,7 @@
+name = MediaCommons Umbrella Site Install Profile
+description = Installation Profile for MediaCommons Umbrella Site
+core = 7.x
+exclusive = true
+
+dependencies[] = mc
+dependencies[] = mediacommons_homepage_umbrella
