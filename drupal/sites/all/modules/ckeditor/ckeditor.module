@@ -41,11 +41,7 @@ define('CKEDITOR_FORCE_SIMPLE_TOOLBAR_NAME', 'DrupalBasic');
 define('CKEDITOR_ENTERMODE_P', 1);
 define('CKEDITOR_ENTERMODE_BR', 2);
 define('CKEDITOR_ENTERMODE_DIV', 3);
-<<<<<<< HEAD
 define('CKEDITOR_LATEST', '4.17.1');
-=======
-define('CKEDITOR_LATEST', '4.16.2');
->>>>>>> 700e9eb0068fc230f17776930b6a6d4111f8ba59
 
 global $_ckeditor_configuration;
 global $_ckeditor_ids;
