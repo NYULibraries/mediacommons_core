@@ -596,8 +596,7 @@ function ckeditor_update_7006() {
   }
 
   module_load_include('module', 'ckeditor');
-
-$module_path = ckeditor_module_path('url');
+  $module_path = ckeditor_module_path('url');
 
   $javascript = [
     ['type' => 'file', 'data' => $module_path. '/includes/ckeditor.utils.js'],
