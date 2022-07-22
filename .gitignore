@@ -16,6 +16,19 @@ drupal/files/
 drupal/sites/*/files
 drupal/sites/*/private
 drupal/sites/*/translations
+drupal/sites/sites.php
+
+# Ignore configuration files that may contain sensitive information.
+sites/*/settings*.php
+
 adminer.php
+
 .DS_Store
 
+tmp/
+.env
+drupal-*
+
+databases
+backups/*.tar.gz
+drupal/.htaccess
