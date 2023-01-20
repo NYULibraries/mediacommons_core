@@ -19,3 +19,12 @@ drupal/sites/*/translations
 adminer.php
 .DS_Store
 
+*.lh
+
+# Intellij
+.idea/
+.vscode/
+
+nightwatch/*.png
+
+selenium-server.log

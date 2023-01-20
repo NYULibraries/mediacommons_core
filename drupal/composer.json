@@ -1,0 +1,12 @@
+{
+    "name": "nyudlts/mediacommons",
+    "description": "MediaCommons Network",
+    "authors": [
+        {
+            "name": "Alberto Ortiz Flores"
+        }
+    ],
+    "require": {
+        "drush/drush": "8.x"
+    }
+}
