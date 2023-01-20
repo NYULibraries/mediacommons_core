@@ -1,0 +1,16 @@
+name = Mediacommons Homepages Channels
+description = Homepage layout -- most recent hub on top, and 6 recent hubs below
+core = 7.x
+package = MediaCommons
+version = 7.x-1.1
+dependencies[] = ctools
+dependencies[] = entity
+dependencies[] = fe_nodequeue
+dependencies[] = nodequeue
+dependencies[] = views
+features[ctools][] = views:views_default:3.0
+features[fe_nodequeue][] = featured_content_for_homepage
+features[features_api][] = api:2
+features[views_view][] = recent_6_hubs
+features[views_view][] = recent_hubs_fieldguide
+features[views_view][] = single_hub_latest

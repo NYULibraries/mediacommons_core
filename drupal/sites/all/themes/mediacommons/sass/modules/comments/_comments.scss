@@ -1,0 +1,366 @@
+//////////////////////////////
+// MODULES: Component styles that are layout independent 
+//////////////////////////////
+.comment-count-xx {
+  position: relative;
+  width: auto;
+  max-width: 40px;
+  min-width: 20px;
+  /*height: 21px;*/
+  margin: 0px 0 20px;
+  text-align: center;
+  font: 14px/1.6 Arial, sans-serif;
+  color: #fff;
+  background: #eee;
+  float: right; // display: none;
+}
+
+.comment-count:empty {
+  height: 1px;
+  width: 1px;
+  display: none;
+}
+
+.comment-count-xx:before {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  right: 0;
+  border-width: 0 0 8px 13px;
+  border-style: solid;
+  border-color: transparent #dedede;
+}
+
+.comment-count-xx:after {
+  content: "";
+  position: absolute;
+  bottom: -8px;
+  right: 9px;
+  border-width: 0 0 8px 4px;
+  border-style: solid;
+  border-color: transparent #fff;
+}
+
+.page-comment-reply {
+  .depth-reply {
+    margin-top: 1px;
+    margin-left: 35px;
+    &:first-of-type {
+      margin-left: 0px;
+    }
+  }
+  .links.inline {
+    display: none;
+  }
+}
+
+.comment {
+  padding: 20px; // border: transparent 1px solid;
+  //  background: nth($secondary, 5);
+  // &:nth-of-type(odd) {
+  //   background: nth($secondary, 5);
+  // }
+  // &:nth-of-type(even) {
+  //   background: nth($secondary, 4);
+  // }
+  &.even {
+    //background: lighten(nth($secondary, 4),1%);
+  }
+  &.odd {
+    background: nth($secondary, 5);
+  }
+  background: nth($secondary, 5);
+  &.depth-reply {
+    margin-top: 1px;
+  }
+  &.top-level {
+    margin-top: 10px;
+  }
+  &.depth-reply {
+    margin-top: 1px;
+    .h-card .field-user-avatar img,
+    .u-photo-small {
+      height: 2em;
+      width: 2em;
+      moz-border-radius: 2em;
+      webkit-border-radius: 2em;
+      border-radius: 2em;
+    }
+    .nameHolder {
+      padding-top: .2em;
+    }
+  }
+  .nameHolder {
+    display: inline-block;
+    padding-top: 1em;
+  }
+  .p-org {
+    display: inline-block; // padding-top: 1em;
+    padding-left: 0;
+    a {
+      display: inline-block;
+    }
+  }
+  time {
+    font-size: .75rem;
+    margin-bottom: 20px;
+  }
+  .field-name-comment-body {
+    line-height: 1.5;
+
+    @include respond-to("not-mobile-lh") {
+      padding-right: 20px;
+    }
+  }
+  .h-card {
+    padding: 0;
+    margin-bottom: 10px;
+    a:link,
+    a:visited {
+      color: #5a5a5a;
+    }
+  }
+  p {
+    margin: .6em 0 0;
+  }
+  h3 {
+    margin: 0;
+    padding: 0;
+    @include type-size($h3-font-size, $h3-line-height); // @include margin-padding(padding, $h3-padding, $h3-padding-pos);
+    // @include margin-padding(margin, $h3-margin, $h3-margin-pos);
+    padding-top: 0;
+    margin-bottom: 10px;
+    color: $h3-color;
+  }
+  h3+time {
+    margin: .5em 0 .4em;
+  }
+  ul.links.inline {
+    padding: 3px 8px 0 8px;
+    margin: 20px 20px 0 0;
+    border-top: 1px solid rgba(0, 0, 0, .1);
+    text-align: right;
+    float: right;
+    li {
+      display: inline-block;
+      &.comment_forbidden a {
+        padding: 0;
+      }
+      a {
+        padding: 2px 5px;
+      }
+      a:link,
+      a:visited {
+        color: rgba(0, 0, 0, .7);
+      }
+      a:hover,
+      a:active {
+        color: $black;
+      }
+    }
+  }
+}
+
+.comment-form fieldset#edit-aa-comment {
+  margin: 1em 0;
+  padding: 20px;
+  border: 1px solid #e4e1e1;
+  box-shadow: 2px 2px 2px rgba(50, 50, 50, .3);
+}
+
+.comment-form {
+  margin: 1em 0;
+  .form-item#edit-author--2,
+  input#edit-subject {
+    margin-bottom: 20px;
+  }
+  input#edit-subject {
+    width: 100%;
+  }
+  .field-name-comment-body {
+    padding-right: 0;
+  }
+  span.form-required {
+    display: none;
+  }
+  fieldset.filter-wrapper {
+    border: none;
+  }
+  .filter-guidelines {
+    display: none;
+  }
+  .filter-help {
+    padding: 0;
+  }
+  .filter-help a {
+    padding: 0 20px 0 0;
+    width: 20px;
+    overflow: hidden;
+    display: block;
+    text-indent: -2000em;
+    height: 20px;
+  }
+  .form-type-select {
+    padding: 0;
+  }
+  input#edit-submit {
+    margin-right: 20px;
+  }
+  input#edit-subject {
+    margin-bottom: 20px;
+    padding: 8px;
+  }
+  textarea {
+    border-top: 2px solid #9a9a9a;
+    border-left: 2px solid #9a9a9a;
+    border-right: 2px solid #eee;
+    border-bottom: 2px solid #eeeeee;
+    padding: 12px;
+  }
+}
+
+.comments_title {
+  @include bold-italic-uppercase-variant($h2-font-bold, $h2-font-italic, $h2-font-uppercase, $h2-font-variant);
+  @include type-size($h2-font-size, $h2-line-height);
+  color: $h2-color;
+  margin-bottom: .5em;
+  padding: .4em 0 .2em 0;
+}
+
+.comments#comments {
+  border-top: 4px solid #ccc;
+  margin-bottom: 2em;
+  margin-top: 3em;
+  padding-top: 3em;
+  line-height: 1.2;
+  .comments-all {
+    margin-bottom: 60px;
+  }
+  .indented {
+    margin-left: 35px;
+  }
+}
+
+#block-views-comments-recent-block .item-list {
+  padding: .5rem 1rem;
+  header {
+    background-color: inherit;
+    padding: 0;
+    font-size: .8rem;
+  }
+  >ul>li {
+    border-bottom: 1px solid gray;
+  }
+  .title-commented-upon {
+    font-size: .8rem;
+    margin-top: 1rem;
+  }
+  .field-name-comment-body {
+    line-height: 1.3;
+    font-size: .8rem;
+  }
+  time {
+    span {
+      font-size: inherit;
+      display: inline;
+    }
+  }
+  .h-card {
+    padding: 0;
+    span {
+      font-size: inherit;
+      display: inline;
+    }
+  }
+}
+
+.view-mc-recent-comments {
+  @extend %sans;
+  ul {
+    padding: 0;
+    margin: 0;
+  }
+  li {
+    // width: auto;
+    // overflow: hidden;
+    padding: .5rem .5rem .5rem 0rem;
+    font-size: .7rem;
+    line-height: 1.3;
+    display: block;
+    border-bottom: 1px solid #ccc;
+    .views-field-subject {
+      font-size: .8rem;
+      margin-top: .1rem;
+      margin-bottom: .2rem;
+      font-weight: bold;
+    }
+    .p-name {
+      display: inline-block;
+    }
+    .views-field-created {
+      display: inline-block;
+    }
+    .views-field-name {
+      display: inline-block;
+      .p-name {}
+    }
+    .views-field-timestamp {
+      display: inline-block;
+    }
+    .views-field-title {
+      a:link,
+      a:visited {
+        color: $body-color;
+      }
+    }
+    .views-field-comment-body {
+      @extend %serif;
+    }
+    p {
+      margin: .4rem 0;
+      line-height: 1.4;
+    }
+  }
+}
+
+.view-comments-from-user {
+  color: nth($black, 2);
+  font-family: $header-font-family;
+  .comment-item {
+    border-bottom: 1px solid nth($black, 4);
+    padding-top: .8em;
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  a:link,
+  a:visited {
+    color: nth($black, 2);
+  }
+  .views-field-title {
+    font-size: .9rem;
+    a:link,
+    a:visited {
+      color: nth($black, 1) !important;
+    }
+  }
+  h2.comment-title {
+    // font-weight: bold;
+    font-size: 1.1rem;
+    padding-bottom: 0.25em;
+    a:link,
+    a:visited {
+      color: nth($black, 1) !important;
+    }
+  }
+  .views-field-comment-body {
+    color: nth($black, 2);
+    font-size: .9rem;
+    font-family: $body-font-family;
+  }
+  .views-field-created {
+    font-size: .9rem;
+    padding-bottom: 5px;
+  }
+  .views-field-title {}
+}

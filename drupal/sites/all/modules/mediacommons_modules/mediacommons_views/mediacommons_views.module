@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * Implements hook_views_api().
+ */
+function mediacommons_views_views_api () {
+  return array(
+    'api' => '3.0',
+  );
+}
+
+/**
+ * Implements hook_views_default_views().
+ */
+function mediacommons_views_views_default_views () {
+  $views = array();
+  $files = file_scan_directory(drupal_get_path('module', 'mediacommons_views') . '/views', '/\.inc/');
+  foreach ($files as $absolute => $file) {
+    require $absolute;
+    if (isset($view)) {
+      $views[$file->name] = $view;
+      unset($view);
+    }
+  }
+  return $views;
+}
+
+function mediacommons_views_views_query_alter(&$view, &$query) {
+  // do not display message in admin/content view
+  if ($view->name == 'admin_views_node') {
+    $condition = array(
+      'field' => 'node.type',
+      'value' => array('message'),
+      'operator' => 'not in',
+    );
+    // Traverse through the 'where' part of the query.
+    foreach ($query->where as &$condition_group) {
+      $condition_group['conditions'][] = $condition;
+    }
+  }
+}

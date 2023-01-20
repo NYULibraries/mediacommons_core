@@ -1,0 +1,52 @@
+//////////////////////////////
+// MODULES: Component styles that are layout independent 
+//////////////////////////////
+footer#footer {
+  padding: 2rem;
+  text-align: center;
+  display: block;
+  font-size: .9rem;
+ 
+  .credits {
+    font-size: .8rem; 
+  }
+  ul {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+}
+
+.footer-nav {
+  li:not(.first) {
+    &:before {
+      content: "\20\00b7\20";
+      color: #999;
+      padding: 0 .1rem 0 .4rem;
+    }
+  }
+}
+
+.cc-info {
+  font-size: .9rem;
+  color: #555 !important;
+  a:link,
+  a:visited {
+    color: #555 !important;
+  }
+  .cc-license::before {
+    padding: 0 2px 0 4px;
+    display: inline-block;
+    font-size: 1rem;
+  }
+}
+
+
+.external {
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: .8rem;
+  padding-right: 1rem;
+  display: inline;
+  background-image: image-url("external.svg");
+}

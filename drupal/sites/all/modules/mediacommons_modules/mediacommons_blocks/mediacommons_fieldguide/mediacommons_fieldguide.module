@@ -1,0 +1,74 @@
+<?php
+
+/**
+ * @file
+ * Module file for mediacommons_fieldguide.
+ */
+
+/**
+ * Implements hook_block_info().
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function mediacommons_fieldguide_block_info() {
+  $blocks = array(
+    'mc_fieldguide' => array(
+      'info' => t('MediaCommons: Field Guide Survey Question block'),
+      'cache' => DRUPAL_CACHE_GLOBAL,
+    ),
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function mediacommons_fieldguide_block_view($delta = '') {
+  // The $delta parameter tells us which block is being requested.
+  switch ($delta) {
+    case 'mc_fieldguide':
+      $entity = mediacommons_blocks_block_load($delta);
+      $block['subject'] = t('Field Guide Survey Question');
+      $block['content'] = array('#markup' => unserialize($entity->content));
+      break;
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_cron().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_cron/7.x
+ */
+function mediacommons_fieldguide_cron() {  
+  $mbid = 'mc_fieldguide';
+  $fieldguide_baseurl = array(
+    'devmc2.dlib.nyu.edu' => 'http://dev.mediacommons.org/fieldguide/latest-hub-fieldguide-widget?pjax=1',  
+    'stagemc2.dlib.nyu.edu' => 'http://stage.mediacommons.org/fieldguide/latest-hub-fieldguide-widget?pjax=1',
+    'mc2.dlib.nyu.edu' => 'http://mediacommons.org/fieldguide/latest-hub-fieldguide-widget?pjax=1',
+    'mediacommons' => 'http://mediacommons.local/fieldguide/latest-hub-fieldguide-widget?pjax=1',
+  );
+  $hostname = gethostname();
+  if (isset($fieldguide_baseurl[$hostname])) {
+    $request = drupal_http_request($fieldguide_baseurl[$hostname]);
+    if ($request->status_message) {
+      $status_message = strtolower(check_plain($request->status_message));
+      if ($status_message == 'ok') {
+        db_update('mediacommons_blocks_blocks')
+          ->fields(array(
+            'content' => serialize(filter_xss($request->data, mediacommons_filter_allowed_tags())),
+            'proceed' => REQUEST_TIME,
+            'expire' => time() + (3600 * 4),
+          )
+        )
+        ->condition('mbid', $mbid, '=')
+        ->execute();
+        return TRUE;
+      }
+      else {
+        return FALSE;
+      }
+    }
+  }
+} 

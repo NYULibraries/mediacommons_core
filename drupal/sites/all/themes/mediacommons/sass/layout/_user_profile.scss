@@ -1,0 +1,37 @@
+//////////////////////////////
+// LAYOUT: Layout dependent css and media queries only 
+//////////////////////////////
+.view-user-search ul {
+  margin-left: 0;
+  padding-left: 0;
+  list-style-type: none;
+  .field-user-avatar {
+    float: left;
+    margin-left: 0;
+  }
+}
+
+.view-user-search li {
+  width: auto;
+  overflow: hidden;
+  margin: 0;
+  padding: 20px 0;
+  border-bottom: 1px solid gray;
+  text-indent: 0;
+  img {
+    @extend %user-photo-treatment-teaser;
+  }
+  .roles {
+    text-transform: uppercase;
+    font-size: .7em;
+  }
+  .p-name,
+  .roles {
+    display: block;
+  }
+  .p-job-title,
+  .h-adr,
+  .p-org {
+    display: inline-block;
+  }
+}

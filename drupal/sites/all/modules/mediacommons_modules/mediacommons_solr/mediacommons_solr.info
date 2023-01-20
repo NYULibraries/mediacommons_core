@@ -1,0 +1,10 @@
+name = MediaCommons Apache Solr
+description = MediaCommons Apache Solr helper
+package = MediaCommons
+core = 7.x
+version = "7.x-1.0"
+dependencies[] = apachesolr_search
+dependencies[] = node
+dependencies[] = entity
+dependencies[] = apachesolr_comments
+dependencies[] = facetapi

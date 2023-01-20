@@ -1,0 +1,46 @@
+//////////////////////////////
+// LAYOUT: Layout dependent css and media queries only 
+//////////////////////////////
+.spoke {
+  .spoke-header {
+    margin: 0 0 2em 0;
+  }
+  .spoke-body {
+    line-height: 1.4375rem;
+  }
+  iframe {
+    max-width: 100%;
+  }
+  .body-text {
+    font-family: $body-font-family;
+     max-width: 38em;
+     line-height: 1.5;
+     font-size: 1.1em;
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+  .curatorsnote {
+    @include bold-italic-uppercase-variant($h3-font-bold, $h3-font-italic, $h3-font-uppercase, $h3-font-variant);
+    @include type-size($h3-font-size, $h3-line-height);
+    color: $h3-color;
+    margin-bottom: .5em;
+    padding-top: 0;
+  }
+  h1 {
+    font-size: 1.8rem;
+    padding: .4em 0 .2em 0;
+    margin: 0 0 .1em 0;
+    color: nth($black, 1);
+  }
+  section.video>figure.video {
+    clear: both;
+    float: left;
+  }
+  @include respond-to("mobile tablet") {
+    section.video.part-of-hub {
+      padding-top: 1em;
+    }
+  }
+}

@@ -1,0 +1,403 @@
+//////////////////////////////
+// MODULES: Component styles that are layout independent 
+//////////////////////////////
+// Use h-card microformats to add semantic meaning to the markup: http://microformats.org/wiki/h-card
+.node-spoke.node-teaser,
+.spoke-header {
+  .label-inline {
+    float: left;
+    font-size: .75rem;
+  }
+}
+
+.user .field-name-field-isreviewof {
+  font-size: .9rem;
+}
+
+h2.block-title {
+  font-size: 1.5rem;
+  margin-bottom: .5rem;
+}
+
+.page-taxonomy {
+  .h-card {
+    padding-left: 0;
+  }
+
+  .p-job-title,
+  .p-org,
+  .views-label-field-research-interests {
+    // display: inline-block;
+    // padding: .2em .2em .2em 0;
+    //line-height: 1.4;
+ 
+  }
+}
+
+.view-mode-user_byline {
+  // for spoke pages, when there is an org 
+  // for reviews areas on spoke 
+  // float: left;
+  margin-right: 5px;
+  display: inline-block;
+
+  .p-name,
+  .p-org {
+    // float: left;
+    display: inline-block;
+  }
+}
+
+.view-mode-user_byline:not(:last-child) {
+  &::after {
+    content: ",\20";
+  }
+}
+
+.view-mode-user_teaser {
+  padding-bottom: 8px;
+
+  .field-name-ds-user-picture img {
+    float: left;
+    margin: 0 .5em 1em 0;
+
+    @extend %user-photo-treatment-teaser;
+  }
+
+  .p-name {
+    font-size: 1.1rem;
+  }
+
+  .p-org {
+    a:link,
+    a:visited {
+      color: rgb(51, 51, 51) !important;
+      box-shadow: inset 0px -1px 0px 0px #ddd;
+    }
+
+    a:hover {
+      text-decoration: none !important;
+      color: rgb(31, 31, 31) !important;
+      box-shadow: inset 0px -1px 0px 0px #666;
+    }
+  }
+}
+
+.user-profile.view-mode-full {
+  .field-name-ds-user-picture img {
+    float: left;
+    margin: 0 1em 1em 0;
+
+    @extend %user-photo-treatment-large;
+  }
+}
+
+.u-photo-small {
+  float: left;
+
+  //  margin: 0 .5em 1em 0;
+  @extend %user-photo-treatment-teaser;
+}
+
+img[src*="identicon"] {
+  -webkit-filter: grayscale(0.9);
+  -webkit-filter: grayscale(90%);
+  filter: grayscale(90%);
+}
+
+// for contributors lists as well as profile
+.h-card {
+  .field-user-avatar,
+  .prof-img-hold {
+    float: left;
+
+    a {
+      display: block;
+    }
+
+    img {
+      @extend %user-photo-treatment-teaser;
+    }
+  }
+
+  > .u-url:first-child {
+    @extend %user-photo-treatment-teaser;
+
+    margin: 1em 0;
+
+    .u-photo {
+      margin: 0;
+
+      .comments &,
+      .spoke & {
+        float: left;
+      }
+    }
+  }
+
+  address {
+    // http://html5doctor.com/the-address-element/
+    &:before {
+      content: "by\20";
+    }
+  }
+
+  .contact-info {
+    clear: left;
+    margin-top: 1em;
+  }
+
+  .h-adr {
+    display: block;
+
+    > span:after {
+      content: ",\20";
+    }
+
+    > span:last-child:after {
+      content: "";
+    }
+  }
+}
+
+.view-mode-hub_teaser_compact {
+  padding: .8em 0;
+}
+
+.node-review.view-mode-teaser {
+  padding: .8em 0;
+}
+
+#block-views-contributors-this-hub-block {
+  .p-name {
+    font-size: .9rem;
+  }
+
+  .h-card {
+    font-size: .7rem;
+  }
+}
+
+.field-name-posts-contributed .block-title::after {
+  content: "As author";
+}
+
+.view-contributors-this-hub {
+  padding: .5rem 0 0;
+
+  .view-empty {
+    padding: 0 1em;
+  }
+}
+
+h1.p-name {
+  font-size: 1.1rem;
+}
+
+.p-org {
+  padding-left: .25rem;
+
+  &:before {
+    content: "\2014\20";
+
+    // mdash encoded http://css-tricks.com/snippets/html/glyphs/
+ 
+  }
+}
+
+// ONLY user profile page
+.profile.view-mode-full {
+  ul {
+    list-style-type: none;
+    padding: 0;
+    margin-top: 0;
+  }
+
+  h2.block-title {
+    margin-top: 2rem;
+  }
+
+  .h-adr {
+    & > div {
+      display: inline-block;
+    }
+
+    & > div:nth-child(2) {
+      &:before {
+        content: ",\20";
+      }
+    }
+
+    & > div:nth-child(3) {
+      &:before {
+        content: ",\20";
+      }
+    }
+  }
+
+  .u-photo {
+    @extend %user-photo-treatment-large;
+  }
+
+  header.h-card {
+    margin-bottom: 1em;
+    padding: 0;
+    font-size: 1rem;
+    line-height: 1.7;
+    width: auto;
+    overflow: hidden;
+
+    .p-name {
+      font-size: 2rem;
+      padding: 0;
+      margin-top: .5rem;
+      margin-bottom: .2em;
+      color: nth($black, 1);
+      line-height: inherit;
+    }
+
+    .p-name.u-url {
+      font-weight: bold;
+    }
+  }
+
+  .contact-info {
+    clear: left;
+    margin-top: 1em;
+  }
+
+  .contact-info li {
+    display: inline-block;
+    margin-right: 1%;
+    line-height: 1.6;
+  }
+
+  ul.tags li:first-child {
+    display: inline-block;
+    padding: 0;
+  }
+
+  & li.views-row-first {
+    padding: 0 0 2.5% 0;
+  }
+
+  .field-name-posts-from-user {
+    .node-spoke {
+      border-bottom: 1px solid nth($secondary, 4);
+    }
+  }
+
+  aside {
+    padding: 0;
+    margin: 1em 0;
+
+    > div {
+      padding: 1rem;
+      font-size: .9rem;
+      line-height: 1.5;
+
+      p {
+        margin: 0 0 .8em 0;
+      }
+    }
+
+    > ul {
+      padding: .5em;
+      margin: 0;
+    }
+  }
+
+  @include respond-to("wide") {
+    .leftside {
+      width: 60%;
+      float: left;
+    }
+
+    section.comments,
+    section {
+      padding: 0 1em 0 0;
+      margin: 0 2em 1em 0;
+      max-width: ms(14);
+    }
+
+    aside {
+      float: right;
+      clear: right;
+    }
+
+    .contact-info {
+      li {
+        margin-bottom: 0;
+        float: none;
+        text-indent: 0;
+
+        a {
+          width: auto;
+          text-indent: .1em;
+
+          // color: nth($mc-blue, 2);
+          // color: nth($primary, 2);
+          &.u-email {
+            text-indent: .2em;
+          }
+
+          &:hover,
+          &:visited {
+            text-decoration: none;
+
+            span {
+              text-decoration: underline;
+
+              // color: nth($mc-blue, 1);
+              // color: nth($primary, 1);
+           
+            }
+          }
+
+          span {
+            display: inline-block;
+          }
+        }
+      }
+    }
+  }
+
+
+  @include respond-to("mobile tablet") {
+    .contact-info {
+      margin-top: 2em;
+      display: table;
+      width: 100%;
+
+      li {
+        // display: inline-block;
+        padding: 0 2% 0 0;
+        font-size: 1.4em;
+        display: table-cell;
+
+        &:last-child {
+          padding: 0;
+        }
+
+        a {
+          @include button;
+
+          display: block;
+        }
+
+        span {
+          display: none;
+        }
+      }
+    }
+
+    aside {
+      margin: 2em 0 1em;
+      float: none;
+    }
+  }
+}
+
+.profile .contribution-type {
+  margin-top: 20px;
+}

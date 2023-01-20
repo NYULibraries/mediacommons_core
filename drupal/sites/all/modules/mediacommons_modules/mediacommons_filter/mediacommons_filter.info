@@ -1,0 +1,7 @@
+name = Mediacommons filter
+description = An custom filter to remove unwanted iframe sources.
+package = Mediacommons modules
+core = 7.x
+package = MediaCommons
+
+dependencies[] = libraries

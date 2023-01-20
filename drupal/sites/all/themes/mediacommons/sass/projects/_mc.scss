@@ -1,0 +1,64 @@
+$fg_primary: map-get($map, mc);
+$mc-logo: "mc-logos/mc.svg";
+$neutral_stack: tint-stack(#333333) !global;
+
+body.mc {
+  main {
+    max-width: 84rem;
+    margin: 0em auto 0;
+  }
+
+  .banner {
+    margin: 1rem auto 2rem;
+    max-width: 84rem;
+
+    .logo {
+      background-image: image-url($mc-logo);
+      background-size: contain;
+      width: 22.5rem;
+      height: 4.4rem;
+    }
+
+    #main-nav {
+      display: none;
+    }
+
+    @include respond-to("narrow navigation") {
+      button.skip-arrow {
+        // there is no primary nav on homepage, so hide responsive hamburger button
+        display: none !important;
+      }
+    }
+  }
+
+  footer#footer {
+    max-width: 84rem;
+    margin: 3em auto 0;
+  }
+
+  aside {
+    > div,
+    .block {
+      background-color: $hometoprightcolor;
+    }
+
+    header {
+      background-color: #d6e2ea;
+    }
+  }
+
+  @include respond-to("narrow navigation") {
+    .banner {
+      h1 {
+        margin-left: 3%;
+      }
+
+      .logo {
+        width: 60vw;
+        max-width: 700px;
+        min-width: 220px;
+        height: 4rem;
+      }
+    }
+  }
+}

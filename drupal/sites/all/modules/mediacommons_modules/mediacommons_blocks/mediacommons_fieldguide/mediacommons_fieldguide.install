@@ -1,0 +1,41 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the mediacommons_block module.
+ */
+
+ /**
+  * Implement hook_enable
+  * See https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_enable/7.x
+  * The hook is called every time the module is enabled. It should be implemented
+  * in the module's .install file. The implementation can rely on the .module 
+  * file being loaded.
+  */
+function mediacommons_fieldguide_enable() {
+  db_insert('mediacommons_blocks_blocks')
+    ->fields(array(
+    'mbid' => 'mc_fieldguide',
+    'type' => 4, // module
+    'label' => serialize('Field Guide Survey Question'),
+    'content' => serialize(''),
+    'created' => time(),
+    'proceed' => time(),
+    'expire' => time(),
+    )
+  )
+  ->execute();  
+}
+
+ /**
+  * Implement hook_disable
+  * See https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_disable/7.x
+  * The hook is called every time the module is disabled. It should be implemented
+  * in the module's .install file. The implementation can rely on
+  * the .module file being loaded.
+  */
+function mediacommons_fieldguide_disable() {
+  db_delete('mediacommons_blocks_blocks')
+    ->condition('mbid', 'mc_fieldguide')
+    ->execute();
+}

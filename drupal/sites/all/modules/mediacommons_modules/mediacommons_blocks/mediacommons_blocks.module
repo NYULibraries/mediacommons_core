@@ -1,0 +1,938 @@
+<?php
+
+/**
+ * @file
+ * Module file for mediacommons_block.
+ */
+
+function mediacommons_blocks_init() {
+  drupal_add_js(array(
+    'mediacommons_blocks' => array(
+      'img_path' => drupal_get_path('module', 'mediacommons_blocks') . '/images/ajax-loader.gif',
+    ),
+  ), 'setting');
+}
+
+/**
+ * Implements hook_menu().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_menu/7.x
+ *
+ * Define menu items and page callbacks.
+ */
+function mediacommons_blocks_menu() {
+  $items = array();
+  // @TODO: Not working
+  // $items['admin/structure/mcblock'] = array(
+  // 'title' => 'Add block',
+  // 'page callback' => 'drupal_get_form',
+  // 'page arguments' => array('block_add_block_form'),
+  // 'access arguments' => array('administer blocks'),
+  // 'type' => MENU_NORMAL_ITEM,
+  // 'file' => 'mediacommons_blocks.admin.inc',
+  // )
+  $items['admin/structure/mcblock/add'] = array(
+    'title' => 'MediaCommons: Add block',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mediacommons_blocks_add_block'),
+    'access arguments' => array('administer blocks'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+function mediacommons_blocks_add_block($form, &$form_state) {
+  module_load_include('inc', 'block', 'block.admin');
+  $default_value = 0;
+  $label = '';
+  $form = block_admin_configure($form, $form_state, 'mediacommons_blocks', NULL);
+  $types = mediacommons_blocks_list_types();
+  $types_options = array();
+
+  foreach ($types as $type => $key) {
+    if ($type != 'module') {
+      $types_options[$key] = $type;
+    }
+  }
+
+  $form['settings']['mediacommons_blocks_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Block label'),
+    '#size' => 60,
+    '#description' => t('Label'),
+    '#default_value' => $label,
+  );
+
+  $form['settings']['mediacommons_blocks_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Type of source'),
+    '#default_value' => $default_value,
+    '#options' => $types_options,
+    '#description' => t('At the moment we do not allow to change the type of the source.'),
+  );
+
+  $form['#submit'][] = 'mediacommons_blocks_add_block_submit';
+
+  return $form;
+
+}
+
+/**
+ * Implements hook_entity_view_mode_alter() // for switching the view mode
+ */
+function mediacommons_blocks_entity_view_mode_alter(&$view_mode, $context) {
+  if ($context['entity_type'] == 'user') {
+    $parameters = drupal_get_query_parameters();
+    if ($parameters) {
+      // User PJAX request (admin/structure/ds/view_modes)
+      // Use DS: Use block field "User content" (admin/structure/ds/fields: user_content_pjax)
+      if (isset($parameters['bjax'])) {
+        $view_mode = 'user_pjax'; // provided by Display Suite
+      }
+    }
+  }
+}
+
+/**
+ * https://api.drupal.org/api/drupal/modules%21block%21block.admin.inc/function/block_add_block_form_submit/7.x
+ */
+function mediacommons_blocks_add_block_submit($form, &$form_state) {
+  $label = (isset($form['settings']['mediacommons_blocks_label']['#value']) ? $form['settings']['mediacommons_blocks_label']['#value'] : '');
+  $type = $form['settings']['mediacommons_blocks_type']['#value'];
+  // for types see mediacommons_blocks_list_types()
+  switch ($type) {
+    case 0 : // plaintext
+      $options = array(
+        'type' => 'plaintext',
+        'label' => $label,
+      );
+      break;
+
+    case 1 : // fulltext
+      $options = array(
+        'type' => 'fulltext',
+        'label' => $label,
+      );
+      break;
+
+    case 2 : // source
+      $options = array(
+        'type' => 'source',
+        'label' => $label,
+      );
+      break;
+
+    case 3 : // callback
+      $options = array(
+        'type' => 'callback',
+        'label' => $label,
+      );
+      break;
+
+  }
+  if ($type != 4) { // don't deal with modules
+    $options['new'] = TRUE;
+    $block = mediacommons_blocks_save_block($options);
+  }
+  cache_clear_all();
+  $form_state['redirect'] = format_string('admin/structure/block/manage/mediacommons_blocks/@mbid/configure', array('@mbid' => $block->mbid));
+}
+
+/**
+ * Implements hook_block_info().
+ * https://api.drupal.org/api/drupal/modules%21block%21block.api.php/function/hook_block_info/7.x
+ *
+ * This hook declares what blocks are provided by the module.
+ */
+function mediacommons_blocks_block_info() {
+
+  $blocks = array();
+
+  $blocks['usercontent_hub'] = array(
+    'info' => t('MediaCommons: User content: Hub'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['usercontent_spoke'] = array(
+    'info' => t('MediaCommons: User content: As contributor'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['usercontent_hub_coeditor'] = array(
+    'info' => t('MediaCommons: User content: As co-editor'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['usercontent_hub_curatorseditors'] = array(
+    'info' => t('MediaCommons: User content: As curator/editor'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['usercontent_comments'] = array(
+    'info' => t('MediaCommons: User content: Comments'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['usercontent_reviewer'] = array(
+    'info' => t('MediaCommons: User content: Reviews'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['mediacommons_solr_comments'] = array(
+    'info' => t('MediaCommons: User comments'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  // Add the sort block.
+  $blocks['mediacommons_solr_sort'] = array(
+    'info' => t('MediaCommons Solr Core: Sorting'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+
+  $blocks['workflow_admin_comments'] = array(
+    'info' => t('MediaCommons: Administer comments'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  $blocks['workflow_admin_nodes'] = array(
+    'info' => t('MediaCommons: Administer nodes'),
+    'cache' => DRUPAL_CACHE_PER_PAGE,
+  );
+
+  // dynamic blocks
+  foreach (mediacommons_blocks_blocks() as $block) {
+    $label = unserialize($block->label);
+    $configuration = unserialize($block->options);
+    if (empty($label)) {
+      $label = 'Untitled';
+    }
+    $configuration['info'] = format_string('Mediacommons Blocks: @label', array('@label' => $label));
+    $blocks[$block->mbid] = $configuration;
+  }
+
+  return $blocks;
+
+}
+
+/**
+ * Implements hook_block_view().
+ *
+ * This hook generates the contents of the blocks themselves.
+ */
+function mediacommons_blocks_block_view($delta = '') {
+  $block = array();
+  $content = '';
+  // The $delta parameter tells us which block is being requested.
+  if ($delta && preg_match('/^mc_/', $delta)) {
+    $data = mediacommons_blocks_block_load($delta);
+    if ($data) {
+      $subject = unserialize($data->label);
+      // for types see mediacommons_blocks_list_types()
+      switch ($data->type) {
+        case 0 : // plaintext
+        case 1 : // fulltext
+        case 2 : // source
+          $content = unserialize($data->content);
+          break;
+
+        case 3 : // callback
+          $callback = unserialize($data->callback);
+          if (function_exists($callback)) {
+            $content = $callback();
+          }
+          break;
+
+      }
+      $block['subject'] = $subject;
+      $block['content'] = array('#markup' => $content);
+    }
+  }
+  else {
+    switch ($delta) {
+      case (preg_match('/usercontent/', $delta) ? TRUE : FALSE):
+        $is_account = mediacommons_solr_is_account();
+        if ($is_account && function_exists($delta)) {
+          $block = $delta($is_account);
+        }
+        break;
+
+      case 'workflow_admin_comments':
+        $block['subject'] = t('Administer comments');
+        $block['content'] = mediacommons_blocks_administer_comments();
+        break;
+
+      case 'workflow_admin_nodes':
+        $block['subject'] = t('Administer nodes');
+        $block['content'] = mediacommons_blocks_administer_nodes();
+        break;
+
+      case 'mediacommons_solr_sort':
+        return mediacommons_blocks_solr_sort();
+
+    }
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_apachesolr_query_prepare().
+ */
+function mediacommons_blocks_apachesolr_query_prepare(DrupalSolrQueryInterface $query) {
+  // See: https://jira.nyu.edu/jira/browse/MC-376
+  // We want to have:
+  // - Relevance
+  // Date, newest to oldest
+  // Date, oldest to newest
+  $query->setAvailableSort('ds_pubdated', array('title' => t('Earliest first'), 'default' => 'asc'));
+  $query->setAvailableSort('ds_pubdatea', array('title' => t('Most recent first'), 'default' => 'desc'));
+  $query->removeAvailableSort('sort_label');
+  $query->removeAvailableSort('bundle');
+  $query->removeAvailableSort('ds_created');
+  $query->removeAvailableSort('sort_name');
+}
+
+function mediacommons_blocks_solr_sort() {
+  $environments = apachesolr_load_all_environments();
+  foreach ($environments as $env_id => $environment) {
+    if (apachesolr_has_searched($env_id) && !apachesolr_suppress_blocks($env_id)) {
+      $response = NULL;
+      $query = apachesolr_current_query($env_id);
+      if ($query) {
+        // Get the query and response. Without these no blocks make sense.
+        $response = apachesolr_static_response_cache($query->getSearcher());
+      }
+      if (empty($response) || ($response->response->numFound < 2)) {
+        return NULL;
+      }
+
+      $sorts = $query->getAvailableSorts();
+      // See: https://jira.nyu.edu/jira/browse/MC-376
+      $sorts['score']['title'] = t('Relevance');
+      // Relevance = score
+      // Get the current sort as an array.
+      $solrsort = $query->getSolrsort();
+      $sort_links = array();
+      $path = $query->getPath();
+      $new_query = clone $query;
+      $toggle = array('asc' => 'desc', 'desc' => 'asc');
+      foreach ($sorts as $name => $sort) {
+        $active = $solrsort['#name'] == $name;
+        if ($name == 'score') {
+          $direction = '';
+          $new_direction = 'desc'; // We only sort by descending score.
+        }
+        elseif ($active) {
+          $direction = $toggle[$solrsort['#direction']];
+          $new_direction = $toggle[$solrsort['#direction']];
+        }
+        else {
+          $direction = '';
+          $new_direction = $sort['default'];
+        }
+        $new_query->setSolrsort($name, $new_direction);
+        $sort_links[$name] = array(
+          'text' => $sort['title'],
+          'path' => $path,
+          'options' => array('query' => $new_query->getSolrsortUrlQuery()),
+          'active' => $active,
+          'direction' => $direction,
+        );
+      }
+      foreach ($sort_links as $name => $link) {
+        $themed_links[$name] = theme('apachesolr_sort_link', $link);
+      }
+      return array(
+        'subject' => t('Sort by'),
+        'content' => theme('apachesolr_sort_list', array('items' => $themed_links))
+      );
+    }
+  }
+}
+
+/**
+ * Process variables for search-results.tpl.php.
+ *
+ * The $variables array contains the following arguments:
+ * - $results: Search results array.
+ * - $module: Module the search results came from (module implementing
+ * hook_search_info()).
+ *
+ * @see search-results.tpl.php
+ */
+function mediacommons_blocks_preprocess_search_results(&$variables) {
+  $variables['theme_hook_suggestions'][] = 'mediacommons_solr_search_results';
+  switch ($variables['search_page']) {
+    case 'usercontent_spoke' :
+      $title = t ('As contributor');
+      break;
+
+    case 'usercontent_hub_coeditor' :
+      $title = t('As co-editor');
+      break;
+
+    case 'usercontent_hub_curatorseditors' :
+        $title = t('As curator/editor');
+        break;
+
+    case 'usercontent_comments' :
+        $title = t('As commenter');
+        break;
+
+    case 'usercontent_reviewer' :
+      $title = t('As reviewer');
+      break;
+
+    default :
+      $title = t('Search results');
+    break;
+
+  }
+  $variables['title'] = $title;
+}
+
+/**
+ * A module-defined block content function.
+ */
+function mediacommons_blocks_user_search($uid, $key = NULL, $conditions = array(), $search_page = 'user_content_by_uid') {
+  $content = '';
+  if ($results = mediacommons_solr_runsearch($key, $conditions)) {
+    /**
+     * Adds search results to the render array.
+     * We add "search_page" to the render_array so that mediacommons_solr_preprocess_search_results
+     * can pick a title for the search page.
+     * Not sure if this is the best way to do this; if you know "the right way"
+     * please change
+     */
+    $render_array = array(
+      '#theme' => 'search_results',
+      '#results' => $results,
+      '#module' => 'mediacommons_solr',
+      '#search_page' => $search_page,
+    );
+    $content = render($render_array);
+  }
+  return $content;
+}
+
+/**
+ * Implements hook_block_configure().
+ * https://api.drupal.org/api/drupal/modules%21block%21block.api.php/function/hook_block_configure/7.x
+ *
+ * This hook declares configuration options for blocks provided by this module.
+ */
+function mediacommons_blocks_block_configure($delta = '') {
+  $form = array();
+  if ($delta && preg_match('/^mc_/', $delta)) {
+    $block = mediacommons_blocks_block_load($delta);
+    $label = unserialize($block->label);
+    $types = mediacommons_blocks_list_types();
+    $types_options = array();
+    foreach ($types as $type => $key) {
+      $types_options[$key] = $type;
+    }
+    $block_type = $types_options[$block->type];
+    $default_value = isset($block->type) ? $block->type : 0;
+    $form['mediacommons_blocks_label'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Block label'),
+      '#size' => 60,
+      '#description' => t('Label'),
+      '#default_value' => $label,
+    );
+    $form['mediacommons_blocks_type'] = array(
+      '#type' => 'select',
+      '#title' => t('Type of source'),
+      '#default_value' => $default_value,
+      '#options' => $types_options,
+      '#description' => t('At the moment we do not allow to change the type of the source.'),
+      '#disabled' => TRUE,
+    );
+    // we must set type before we allow to configure the block
+    if (isset($block->type)) {
+      switch ($block_type) {
+        case 'source' :
+          $url = $block->url;
+          $form['mediacommons_blocks_url'] = array(
+            '#title' => t('Source URL'),
+            '#type' => 'textfield',
+            '#description' => t('The URL of the datasource you want to use'),
+            '#default_value' => $url,
+          );
+          break;
+
+        case 'callback' :
+          $callback = unserialize($block->callback);
+          $form['mediacommons_blocks_callback'] = array(
+            '#title' => t('Function callback'),
+            '#type' => 'textfield',
+            '#description' => t('The name of the function to call. The function must exist.'),
+            '#default_value' => $callback,
+          );
+          break;
+
+        case 'fulltext' :
+          $content = unserialize($block->content);
+          $form['mediacommons_blocks_content'] = array(
+            '#title' => t('Content'),
+            '#type' => 'textarea',
+            '#description' => t('Full HTML'),
+            '#default_value' => $content,
+          );
+          break;
+
+        case 'plaintext' :
+          $content = unserialize($block->content);
+          $form['mediacommons_blocks_plaintext'] = array(
+            '#title' => t('Content'),
+            '#type' => 'textarea',
+            '#description' => t('Plain text'),
+            '#default_value' => $content,
+          );
+          break;
+
+      }
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implements hook_block_save().
+ *
+ * This hook declares how the configured options for a block
+ * provided by this module are saved.
+ */
+function mediacommons_blocks_block_save($delta = '', $edit = array()) {
+  if ($delta && preg_match('/^mc_/', $delta)) {
+    $block = mediacommons_blocks_block_load($delta);
+    $types = mediacommons_blocks_list_types();
+    $types_options = array();
+    foreach ($types as $type => $key) {
+      $types_options[$key] = $type;
+    }
+    $type = $types_options[$edit['mediacommons_blocks_type']];
+    $label = $edit['mediacommons_blocks_label'];
+    switch ($type) {
+      case 'source' :
+        $options = array(
+          'url' => $edit['mediacommons_blocks_url'],
+          'mbid' => $delta,
+        );
+        return _mediacommons_blocks_save_source($type, $label, $delta, $options);
+
+      case 'callback' :
+        $options = array(
+          'url' => $edit['mediacommons_blocks_callback'],
+          'mbid' => $delta,
+        );
+        return _mediacommons_blocks_save_callback($type, $label, $delta, $options);
+
+      case 'fulltext' :
+        $options = array(
+          'content' => $edit['mediacommons_blocks_content'],
+          'mbid' => $delta,
+        );
+        return _mediacommons_blocks_save_fulltext($type, $label, $delta, $options);
+
+      case 'plaintext' :
+        $options = array(
+          'content' => $edit['mediacommons_blocks_plaintext'],
+          'mbid' => $delta,
+        );
+        return _mediacommons_blocks_save_plaintext($type, $label, $delta, $options);
+
+    }
+  }
+}
+
+function _mediacommons_blocks_save_fulltext($type, $label, $mbid, $options) {
+  $content = (isset($options['content'])) ? $options['content'] : '';
+  $configuration = (isset($options['options'])) ? $options['options'] : array();
+  $block = mediacommons_blocks_block_load($mbid);
+  if (!$block) {
+    db_insert('mediacommons_blocks_blocks')
+      ->fields(array(
+        'mbid' => $mbid,
+        'type' => mediacommons_blocks_list_types($type),
+        'label' => serialize($label),
+        'content' => serialize($content),
+        'created' => time(),
+        'proceed' => time(),
+        'options' => serialize($configuration),
+        'expire' => 0, // we don't expire fulltext
+      ))
+      ->execute();
+  }
+  else {
+    db_update('mediacommons_blocks_blocks')
+      ->fields(array(
+        'content' => serialize($content),
+        'label' => serialize($label),
+        'proceed' => REQUEST_TIME,
+       ))
+      ->condition('mbid', $options['mbid'], '=')
+      ->execute();
+  }
+  // create a wathchdog record
+  return mediacommons_blocks_block_load($mbid);
+}
+
+function _mediacommons_blocks_save_plaintext($type, $label, $mbid, $options) {
+  $content = (isset($options['content'])) ? $options['content'] : '';
+  $text = $content;
+  $block = mediacommons_blocks_block_load($mbid);
+  if (!$block) {
+    db_insert('mediacommons_blocks_blocks')
+      ->fields(array(
+        'mbid' => $mbid,
+        'type' => mediacommons_blocks_list_types($type),
+        'label' => serialize($label),
+        'content' => serialize($text),
+        'created' => time(),
+        'proceed' => time(),
+        'expire' => 0, // we don't expire plaintext
+      ))
+      ->execute();
+  }
+  else {
+    db_update('mediacommons_blocks_blocks')
+      ->fields(array(
+        'content' => serialize($text),
+        'label' => serialize($label),
+        'proceed' => REQUEST_TIME,
+      ))
+      ->condition('mbid', $options['mbid'], '=')
+      ->execute();
+  }
+  // create a wathchdog record
+  return mediacommons_blocks_block_load($mbid);
+}
+
+function _mediacommons_blocks_save_callback($type, $label, $mbid, $options) {
+  $callback = (isset($options['callback'])) ? $options['callback'] : '';
+  $block = mediacommons_blocks_block_load($mbid);
+   if (!$block) {
+     db_insert('mediacommons_blocks_blocks')
+       ->fields(array(
+         'mbid' => $mbid,
+         'type' => mediacommons_blocks_list_types($type),
+         'label' => serialize($label),
+         'callback' => serialize($callback),
+         'created' => time(),
+         'proceed' => time(),
+         'expire' => 0, // maybe later on
+       ))
+       ->execute();
+   }
+   else {
+     db_update('mediacommons_blocks_blocks')
+       ->fields(array(
+         'callback' => serialize($callback),
+         'label' => serialize($label),
+         'proceed' => REQUEST_TIME,
+       ))
+       ->condition('mbid', $options['mbid'], '=')
+       ->execute();
+  }
+  // create a wathchdog record
+  return mediacommons_blocks_block_load($mbid);
+}
+
+function _mediacommons_blocks_save_source($type, $label, $mbid, $options) {
+  $url = (isset($options['url'])) ? check_url($options['url']) : NULL;
+  $block = mediacommons_blocks_block_load($mbid);
+  $text = '';
+  if ($url) {
+    $request = drupal_http_request($url);
+    if (isset($request->status_message)) {
+      $status_message = strtolower(check_plain($request->status_message));
+      if ($status_message == 'ok') {
+        $text = filter_xss($request->data, mediacommons_filter_allowed_tags());
+      }
+    }
+  }
+  if (!$block) {
+    db_insert('mediacommons_blocks_blocks')
+      ->fields(array(
+        'mbid' => $mbid,
+        'type' => mediacommons_blocks_list_types($type),
+        'label' => serialize($label),
+        'url' => $url,
+        'content' => serialize($text),
+        'created' => time(),
+        'proceed' => time(),
+        'expire' => time() + (3600 * 4), // we expire sources; later on will let user change this
+      ))
+      ->execute();
+  }
+  else {
+    db_update('mediacommons_blocks_blocks')
+      ->fields(array(
+        'content' => serialize($text),
+        'url' => $url,
+        'label' => serialize($label),
+        'proceed' => time(),
+        'expire' => time() + (3600 * 4), // we expire sources; later on will let user change this
+      ))
+      ->condition('mbid', $options['mbid'], '=')
+      ->execute();
+  }
+  // create a wathchdog record
+  return mediacommons_blocks_block_load($mbid);
+}
+
+function mediacommons_blocks_save_block($options) {
+  if (isset($options['type'])) {
+    $type = $options['type'];
+    $label = (isset($options['label'])) ? check_plain($options['label']) : '';
+    $mbid = (isset($options['mbid'])) ? check_plain($options['mbid']) : 'mc_' . time();
+    switch ($type) {
+      case 'source' :
+        return _mediacommons_blocks_save_source($type, $label, $mbid, $options);
+
+      case 'fulltext' :
+        return _mediacommons_blocks_save_fulltext($type, $label, $mbid, $options);
+
+      case 'plaintext' :
+        return _mediacommons_blocks_save_plaintext($type, $label, $mbid, $options);
+
+      case 'callback' :
+        return _mediacommons_blocks_save_callback($type, $label, $mbid, $options);
+
+    }
+  }
+}
+
+/**
+ * Implements hook_cron().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_cron/7.x
+ */
+function mediacommons_blocks_cron() {
+  while (TRUE) {
+    $update = array(
+      'proceed' => time(),
+      'expire' => time() + (3600 * 4),
+    );
+    $item = db_query_range("SELECT mbid, type, url, callback FROM {mediacommons_blocks_blocks} WHERE expire > 0 AND expire > NOW() AND type = '2' ORDER BY proceed ASC", 0, 1, array())->fetchObject();
+    if ($item) {
+      if ($item->type == 2) { // 2 stands for source. See: mediacommons_blocks_list_types
+        if ($item->url) {
+          $url = check_url($item->url);
+          $request = drupal_http_request($url);
+          if ($request->status_message) {
+            $status_message = strtolower(check_plain($request->status_message));
+            if ($status_message == 'ok') {
+              $update['content'] = serialize($request->data);
+            }
+          }
+        }
+        $succeeded = db_update('mediacommons_blocks_blocks')->fields($update)->condition('mbid', $item->mbid, '=')->execute();
+        if ($succeeded) {
+          return $item;
+        }
+      }
+      else { // at the moment we only cache source
+        // No items currently available to claim.
+        return FALSE;
+      }
+    }
+    else {
+      // No items currently available to claim.
+      return FALSE;
+    }
+  }
+}
+
+function mediacommons_blocks_blocks() {
+  $query = db_query('SELECT * FROM {mediacommons_blocks_blocks} WHERE type <> :type', array(':type' => 4));
+  $result = $query->fetchAll();
+  $blocks = array();
+  foreach ($result as $record) {
+    $blocks[] = $record;
+  }
+  return $blocks;
+}
+
+function mediacommons_blocks_block_load($mbid) {
+  $query = db_query('SELECT * FROM {mediacommons_blocks_blocks} WHERE mbid = :mbid', array(':mbid' => $mbid));
+  return $query->fetchObject();
+}
+
+function mediacommons_blocks_list_types($label = null) {
+  $types = array(
+    'plaintext' => 0, // plaint text
+    'fulltext' => 1, // HTML
+    'source' => 2, // URL
+    'callback' => 3, // function to call
+    'module' => 4, // module
+  );
+  if (isset($types[$label])) {
+    return $types[$label];
+  }
+  return $types;
+}
+
+/**
+ * This is here to show how can someone provide a callback as a block
+ */
+function mediacommons_blocks_callback_example() {
+  return '<p>At vero eos et accusamus et iusto odio dignissimos ducimus, qui blanditiis praesentium voluptatum deleniti atque corrupti, quos dolores et quas molestias excepturi sint, obcaecati cupiditate non provident, similique sunt in culpa, qui officia deserunt mollitia animi, id est laborum et dolorum fuga.</p>';
+}
+
+function mediacommons_blocks_administer_comments($nlimit = 10) {
+  if (user_access('administer comments')) {
+    $header = array('Subject', 'Posted', 'Approve', 'Edit', 'Delete');
+    $rows = array();
+    $query = db_select('comment', 'c');
+    $query->innerJoin('node', 'n', 'c.nid = n.nid');
+    $comments = $query
+      ->fields('c', array('created', 'subject', 'cid', 'nid'))
+      ->fields('n', array('title'))
+      ->condition('c.status', COMMENT_NOT_PUBLISHED)
+      ->orderBy('c.created', 'DESC')
+      ->range(0, $nlimit)
+      ->execute();
+    foreach ($comments as $comment) {
+      $rows[] = array(
+        l(check_plain($comment->subject), 'node/' . $comment->nid, array('fragment' => 'comment-'. $comment->cid, 'attributes' => array('title' => $comment->title))), // Subject
+        format_date($comment->created, 'medium'), // Posted
+        l(t('approve'), 'comment/' . $comment->cid . '/approve', array('query' => array('token' => drupal_get_token("comment/$comment->cid/approve")))), // approve
+        l(t('edit'), 'comment/' . $comment->cid . '/edit'), // Edit
+        l(t('delete'), 'comment/' . $comment->cid . '/delete') // Delete
+      );
+    }
+  }
+  if ($rows) {
+    return theme('table', array('header' => $header, 'rows' => $rows));
+  }
+  else {
+    $attributes = array(
+      'element' => array(
+        '#tag' => 'p',
+        '#attributes' => array(
+          'class' => 'all-done'
+        ),
+        '#value' => t('All done. No comments.')
+      )
+    );
+    return theme('html_tag', $attributes);
+  }
+}
+
+
+function mediacommons_blocks_administer_nodes($nlimit = 10) {
+  $items = array();
+  $content = '';
+  if (user_access('administer nodes')) {
+    $query = db_select('node', 'n');
+    $query->innerJoin('users', 'u', 'n.uid = u.uid');
+    $nodes = $query
+      ->fields('n', array('nid', 'title', 'type', 'changed'))
+      ->fields('u', array('name', 'uid'))
+      ->condition('n.status', 0)
+      ->orderBy('n.changed', 'DESC')
+      ->range(0, $nlimit)
+      ->execute();
+    foreach ($nodes as $node) {
+      $items[] = check_plain($node->title) . ' - ' . format_date($node->changed, 'medium') . '<br />[' . l(t('By @user', array('@user' => $node->name)), 'user/' . $node->uid) . '] [' . l(t('edit'), 'node/' . $node->nid . '/edit') . '] [' . l(t('delete'), 'node/' . $node->nid . '/delete') . ']';
+    }
+  }
+
+  $content .= theme('item_list', array('items' => $items, 'title' => t('Content queue')));
+  $content .= '<div class="more-link">'. l(t('more'), 'admin/content/node', array('attributes' => array('title' => t('Administer content')))) .'</div>';
+}
+
+function usercontent($uid) {
+  $key = '*:*';
+  $block = array();
+  $block['subject'] = t('User content');
+  $conditions = array(
+    'fq' => array('im_contributors:' . $uid),
+    'spellcheck' => 'false',
+    'sort' => 'ss_periodstart desc',
+  );
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+  return $block;
+}
+
+function usercontent_hub_curatorseditors($uid) {
+  $key = '*:*';
+  $block = array();
+  $block['subject'] = t('User content: As curator/editor');
+  $conditions = array(
+    'fq' => array('im_field_curators_editors:' . $uid),
+    'spellcheck' => 'false',
+    'sort' => 'ss_periodstart desc',
+  );
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+  return $block;
+}
+
+function usercontent_hub_coeditor($uid) {
+  $key = '*:*';
+  $block = array();
+  $block['subject'] = t('User content: As co-editor');
+  $conditions = array(
+    'fq' => array('im_field_co_editor:' . $uid),
+    'spellcheck' => 'false',
+    'sort' => 'ss_periodstart desc',
+  );
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+  return $block;
+}
+
+function usercontent_spoke($uid) {
+  $key = '*:*';
+  $block = array();
+  $block['subject'] = t('User content: Spokes');
+  $conditions = array(
+    'fq' => array(
+      'bundle:spoke',
+      'im_contributor:' . $uid,
+    ),
+    'spellcheck' => 'false',
+    'sort' => 'ss_periodstart desc',
+  );
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+  return $block;
+}
+
+function usercontent_comments($uid) {
+  $key = '*:*';
+  $block = array();
+  $block['subject'] = t('User content: Comments');
+  $conditions = array(
+    'fq' => array(
+      'im_contributors:' . $uid,
+      'entity_type:comment',
+    ),
+    'spellcheck' => 'false',
+    'sort' => 'timestamp desc',
+  );
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+  return $block;
+}
+
+function usercontent_reviewer($uid) {
+
+  $key = '*:*';
+
+  $block = array();
+
+  // $block['subject'] = t('User content: Reviews');
+  // https://jira.nyu.edu/jira/browse/MC-484
+  $block['subject'] = '';
+
+  $conditions = array(
+    'fq' => array(
+      'im_contributors:' . $uid,
+      'bundle:review',
+    ),
+    'spellcheck' => 'false',
+    'sort' => 'timestamp desc',
+  );
+
+  $block['content'] = mediacommons_blocks_user_search($uid, $key, $conditions, __FUNCTION__);
+
+  return $block;
+
+}

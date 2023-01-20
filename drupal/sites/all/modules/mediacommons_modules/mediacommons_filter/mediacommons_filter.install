@@ -1,0 +1,29 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function mediacommons_filter_schema() {
+
+  $schema['mediacommons_filter'] = array(
+    'description' => 'The table for allowed iframe source.',
+    'fields' => array(
+      'did' => array(
+        'description' => 'The domain ID.',
+        'type' => 'varchar',
+      	'length' => 250,
+      ),
+      'domain' => array(
+        'description' => 'The domain source.',
+        'type' => 'text',
+      ),
+    ),
+  );
+
+  $schema['cache_mediacommons_filter'] = drupal_get_schema_unprocessed('system', 'cache');
+
+  $schema['cache_mediacommons_filter']['description'] = 'Cache table for the MediaCommons filter module to store allowed sources.';
+
+  return $schema;
+
+}

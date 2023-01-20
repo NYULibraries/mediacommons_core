@@ -1,0 +1,195 @@
+//////////////////////////////
+// MODULES: Component styles that are layout independent. v1
+//////////////////////////////
+@import "_global_nav_variables";
+
+@import "_global_nav_utils";
+
+#admin-menu,
+#admin-menu .dropdown {
+  display: none;
+}
+
+#block-system-user-menu {
+  outline: none;
+  position: relative;
+}
+
+html body.admin-menu nav.global {
+  margin-top: -29px;
+}
+
+nav.global {
+  //$experimental-support-for-svg: true;
+  @include background-image(linear-gradient(top, $globalnav-background-gradient-start, $globalnav-background-gradient-end));
+  width: 100%;
+  font-family: $heading-font-name;
+  font-size: $ms-base;
+  padding: 0;
+   @extend %clearfix; 
+  ul {
+    margin: 0;
+    li {
+      text-indent: 0;
+      margin: 0;
+      padding: 0;
+      a {
+        font-size: .8rem;
+        line-height: 1.5;
+        font-weight: normal;
+        font-weight: 400;
+        color: nth($black, 5);
+        text-indent: 0;
+        display: block; // important is for overriding the project specific colors
+        &:hover,
+        &:focus {
+          color: nth($black, 6) !important;
+          text-decoration: underline;
+        }
+        &:link,
+        &:visited {
+          color: nth($black, 6) !important;
+          text-decoration: none;
+        }
+      }
+    }
+  } // // top level lists
+  // > ul {
+  //   // width: 100%;
+  //   // position: relative;
+  //   // all deeper than one level
+  //   ul[aria-hidden="false"] {
+  //     float: left;
+  //     width: auto;
+  //     position: relative;
+  //     > li {
+  //       > a {
+  //         display: block;
+  //       }
+  //     }
+  //   }
+  // }
+  // State
+  ul[aria-hidden="true"] {
+    display: none;
+    overflow: hidden;
+  }
+  ul[aria-hidden="false"] {
+    //display: block;
+    overflow: visible;
+  }
+  li.sites_nav {
+    // Nav among MC projects
+    .logolink {
+      width: 12rem;
+      padding: .5rem 1rem 0 1rem;
+      display: block;
+      float: left;
+      overflow: hidden;
+      margin: 0;
+      font-size: 1.3rem;
+      line-height: 1;
+      &:hover {
+        text-decoration: none;
+      }
+      span {
+        position: absolute !important;
+        height: 1px;
+        width: 1px;
+        overflow: hidden;
+        clip: rect(1px, 1px, 1px, 1px);
+      }
+    }
+    ul {
+      float: left;
+      width: auto;
+      position: relative;
+    }
+    .mediacommonsfrontpage {
+      display: block;
+    }
+    @include respond-to("full navigation") {
+      .mediacommonsfrontpage {
+        display: none;
+      } // Each of the channel links has the class "leaf"
+      .leaf {
+        background: image-url("verticalline.png");
+        background-repeat: no-repeat;
+        background-position: center right;
+        &:last-child {
+          background: none;
+        }
+      }
+      ul {
+       // height: $globalnav-height;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-flow: row nowrap;
+        flex-flow: row nowrap; 
+        >li {
+          -webkit-flex: 1 0 auto;
+          flex: 1 0 auto;
+          >a.menu__link {
+            padding: .7em ;
+          }
+        }
+      }
+    }
+  }
+}
+
+@include respond-to("narrow navigation") {
+  // top level navigation
+  // > ul {
+  //   width: auto;
+  //   position: relative;
+  //   height: $globalnav-height;
+  //}
+  nav.global li.sites_nav {
+    padding: 0 0 0 3%;
+    font-size: 1.3rem;
+    height: $globalnav-height;
+    display: block;
+    position: relative;
+    z-index: 1000;
+    float: left;
+    ul {
+      // Channel links
+      @include border-radius(0 0 5px 5px);
+      background-color: $globalnav-background-gradient-end; // height: 0px;
+      // display: none;
+      >li {
+        -webkit-flex: 1 1 auto;
+        flex: 1 1 auto;
+        a {
+          font-size: 1rem;
+          width: 20rem;
+          padding: 1em 2.5em 1em 1em;
+          display: block;
+          border-bottom: 1px solid darken($globalnav-background-gradient-end, 6%);
+          box-shadow: 0px 1px lighten($globalnav-background-gradient-end, 4%);
+        }
+        &:last-child>a {
+          border: none;
+          box-shadow: none;
+        }
+      } // }
+    }
+    &.open ul {
+      height: auto;
+      display: -webkit-flex;
+      display: flex;
+      -webkit-flex-flow: column nowrap;
+      flex-flow: column nowrap;
+      clear: left;
+    }
+    a.logolink {
+      padding: .25em 0em .2em 0;
+      width: 14rem;
+      font-size: 1.3rem;
+      &:before {
+        content: "\e002 \e00b";
+      }
+    }
+  }
+}

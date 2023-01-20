@@ -1,0 +1,46 @@
+{
+  "name": "mediacommons-nightwatch-test",
+  "version": "1.0.24",
+  "description": "MediaCommons front-end testing",
+  "main": "index.js",
+  "engines": {
+    "node": ">=4.4.6"
+  },
+  "scripts": {
+    "test": "export DISPLAY=:10 && nightwatch --env default"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NYULibraries/mediacommons.git"
+  },
+  "author": "Alberto Ortiz Flores",
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/NYULibraries/mediacommons/issues"
+  },
+  "homepage": "https://github.com/NYULibraries/mediacommons#readme",
+  "dependencies": {
+    "nightwatch": "^1.0.19",
+    "selenium-download": "^2.0.13"
+  },
+  "devDependencies": {
+    "aws-sdk": "^2.7.13",
+    "chromedriver": "^2.33.2",
+    "env2": "^2.1.1",
+    "mime-types": "^2.1.13",
+    "nodemon": "^1.11.0",
+    "request": "^2.87.0",
+    "selenium-server": "^3.8.1"
+  },
+  "keywords": [
+    "nightwatch",
+    "testing",
+    "front-end",
+    "UI",
+    "browser",
+    "test",
+    "testing",
+    "User Acceptance Testing",
+    "UAT"
+  ]
+}

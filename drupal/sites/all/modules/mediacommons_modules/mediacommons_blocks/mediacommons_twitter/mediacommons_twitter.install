@@ -1,0 +1,17 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the mediacommons_twitter module.
+ */
+
+/**
+ * Implements hook_uninstall().
+ *
+ * @ingroup mediacommons_twitter
+ */
+function mediacommons_twitter_uninstall () {
+  variable_del('mediacommons_twitter_user');
+  variable_del('mediacommons_twitter_label');
+  variable_del('mediacommons_twitter_url');
+}

@@ -1,0 +1,82 @@
+.page-node-edit.node-type-contributed-piece .field-name-field-attached-images thead,
+.page-node-edit.node-type-contributed-piece .field-name-field-attached-images .file,
+.page-node-edit.node-type-contributed-piece .field-name-field-attached-images .file-size,
+.page-node-add.page-node-add-contributed-piece .field-name-field-attached-images thead,
+.page-node-add.page-node-add-contributed-piece .field-name-field-attached-images .file,
+.page-node-add.page-node-add-contributed-piece .field-name-field-attached-images .file-size,
+.tao #edit-field-document-textarea-body label,
+.tao #edit-field-document-textarea-body-und-0-format,
+.tao .links.secondary-menu,
+.tao .toolbar-drawer {
+  display: none;
+  visibility: hidden;
+}
+
+.contributor.no-privilege #edit-actions {
+  position: absolute !important;
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+.page-node-add-cluster .field-name-field-representative-image,
+.node-cluster-type-video .field-name-field-video-embed-link,
+.node-cluster-type-video field-name-field-tease-image,
+.node-cluster-type-image .field-name-field-representative-image {
+  display: block;
+}
+
+.tao .messages {
+  padding: .5em 1em;
+}
+
+.image-preview img:hover {
+  cursor: move;
+}
+
+.image-preview .image-preview-actions, .image-preview .image-preview-actions {
+	display: block;
+	margin: 0;
+}
+
+.image-preview .crop, .image-preview .delete {
+	text-decoration: underline;
+	font-size: small;
+}
+
+.user-cant-contribute #edit-actions {
+  display: none;
+  visibility: hidden;
+}
+
+#dashboard hr {
+  display: block;
+  border: 0;
+  height: 1px;
+  background-image: -webkit-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -moz-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -ms-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+  background-image: -o-linear-gradient(left, #f0f0f0, #8c8b8b, #f0f0f0);
+}
+
+#dashboard .view-recent-content .pager {
+  display: none;
+  visibility: hidden;
+}
+
+.page-node-add .field-name-field-body label {
+  display: none;
+  visibility: hidden;
+}
+
+.page-node-add .text-format-wrapper .form-item {
+  background: #fff;
+  margin: 0;
+  border-width: 0;
+  border-style: none;
+  border-color: transparent;
+  padding: 0;
+}
+
+.page-node-add .field-name-field-body .filter-wrapper {
+  display: none;
+  visibility: hidden;
+}

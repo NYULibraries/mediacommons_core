@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * hook_install()
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_install/7.x
+ * Install instructions are enclosed in a _install() function. This hook will be
+ * called when the module is first enabled. Any number of functions can reside
+ * here, but the most typical use is to create the necessary tables for your module.
+ *
+ */
+ function mediacommons_content_types_install() {
+   $filename = 'transparent.png';
+   $source = drupal_get_path('module', 'mediacommons_content_types') . '/default_images'. '/' . $filename;
+   // Create new file object and get new fid.
+   if (file_exists($source)) {
+     $uri = file_build_uri($filename);
+     $fid = db_query('SELECT fid FROM {file_managed} WHERE uri = :uri', array(':uri' => $uri))->fetchField();
+     if (empty($fid)) {
+       $file = new stdClass;
+       $file->filename = $filename;
+       $file->timestamp = REQUEST_TIME;
+       $file->uri = $source;
+       $file->filemime = file_get_mimetype($source);
+       $file->uid = 1;
+       $file->status = 1;
+       $file = file_copy($file, $uri);
+       $fid = $file->fid;
+     }
+   }
+   if (!empty($fid)) {
+     variable_set('mediacommons_content_types_default_image_fid', $fid);
+   }
+ }

@@ -1,0 +1,311 @@
+<?php
+
+/**
+ * Implements hook_init().
+ *
+ * This hook is run at the beginning of the page request. It is typically
+ * used to set up global parameters that are needed later in the request.
+ * When this hook is called, the theme and all modules are already loaded
+ * in memory.
+ *
+ * This hook is not run on cached pages.
+ *
+ * To add CSS or JS that should be present on all pages, modules should
+ * not implement this hook, but declare these files in their .info file.
+ *
+ * See: https://api.drupal.org/api/drupal/modules!system!system.api.php/function/hook_init/7.x
+ *
+ */
+function mc_init() {
+  /**
+   * The Access-Control-Allow-Origin response header indicates whether
+   * the response can be shared with resources with the given origin.
+   *
+   * See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Access-Control-Allow-Origin
+   */
+  drupal_add_http_header('Access-Control-Allow-Origin', '*');
+  drupal_register_shutdown_function('mc_shutdown');
+}
+
+/**
+ * Implements template_preprocess_html
+ * https://api.drupal.org/api/drupal/includes%21theme.inc/function/template_preprocess_html/7
+ */
+function mc_preprocess_html(&$vars) {
+  /**
+   * The X-Frame-Options HTTP response header can be used to indicate whether or not a
+   * browser should be allowed to render a page in a <frame>, <iframe> or <object> .
+   * Sites can use this to avoid clickjacking attacks, by ensuring that their content is
+   * not embedded into other sites.
+   *
+   * The added security is only provided if the user accessing the document is using a
+   * browser supporting X-Frame-Options.
+   *
+   * As of Drupal 7.50, Drupal core sets X-Frame-Options by default to prevent the site
+   * from being embedded in an iframe on another domain. We want our sites to be
+   * embedded; we need to remove this header.
+   *
+   * See: https://www.drupal.org/node/2735873
+   * See: https://www.owasp.org/index.php/Clickjacking
+   * See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+   */
+    header_remove('X-Frame-Options');
+}
+
+function  mc_get_root_url() {
+
+  static $root_url;
+
+  if ($root_url) {
+    return $root_url;
+  }
+
+  // NOTE: gethostname() does not work for local /etc/hosts/ aliases.
+  if (drupal_is_cli() && isset($GLOBALS['mc_umbrella_baseurl'])) {
+    // drush_log('Umbrella : ' . $GLOBALS['mc_umbrella_baseurl'], 'ok');
+    // drush_log('Site : ' . $GLOBALS['mc_site_baseurl'], 'ok');
+    // print_r($GLOBALS['mc_sites']);
+    $root_url = $GLOBALS['mc_umbrella_baseurl'];
+  }
+  else {
+
+    $hostname = $_SERVER['SERVER_NAME'];
+
+    // Don't just do `$_SERVER['HTTPS'] ? 'https' : 'http';`.  This will throw an
+    // error "Notice: Undefined index: HTTPS" which is not fatal but is printed on
+    // on the page.
+    if ( array_key_exists( 'HTTPS', $_SERVER ) ) {
+      // It's unclear from http://php.net/manual/en/reserved.variables.server.php
+      // whether the existence of the key is enough.  Test if it's "non-empty".
+      $protocol = empty( $_SERVER['HTTPS'] ) ? 'http' : 'https';
+
+    }
+    // Drupal .htaccess set "protossl" to "s" if we were accessed via https://
+    // we can use this information if the first test fail.
+    else if (isset($_SERVER['protossl']) && $_SERVER['protossl'] =='s') {
+      $protocol = 'https';
+    }
+    else {
+      $protocol = 'http';
+    }
+
+    $port = ($_SERVER['SERVER_PORT'] === '443' || $_SERVER['SERVER_PORT'] === '80' || !isset($_SERVER['SERVER_PORT'])) ? '' : ':' . $_SERVER['SERVER_PORT'];
+
+    $root_url = "${protocol}://${hostname}${port}";
+
+  }
+
+  return $root_url;
+}
+
+function mediacommons_homepage_umbrella_url() {
+  if (function_exists('__host_root()')) {
+    return __host_root();
+  }
+  else {
+    return mc_get_root_url();
+  }
+}
+
+function mc_project_url($project = NULL) {
+  global $base_url;
+  if ($project) {
+    return mediacommons_homepage_umbrella_url() . '/' . $project;
+  }
+  else {
+    return $base_url;
+  }
+}
+
+function mediacommons_utilities_is_project_redirect($path) {
+  // Some browsers treat \ as / so normalize to forward slashes.
+  $path = str_replace('\\', '/', $path);
+  // If the path starts with a backslash then it is considered an project redirect
+  $substr = substr($path, 0, 1);
+  if ($substr == '/') {
+    return drupal_strip_dangerous_protocols($path);
+  }
+  else {
+    return FALSE;
+  }
+}
+
+/**
+ * Implements hook_user_update()
+ * @link https://api.drupal.org/api/drupal/modules%21user%21user.api.php/function/hook_user_update/7.x
+ */
+function mc_user_update(&$edit, $account, $category) {
+  // $query = new EntityFieldQuery;
+  // $result = $query->entityCondition('entity_type', 'node')
+  //                 ->entityCondition('bundle', 'project')
+  //                 ->propertyCondition('status', 1)
+  //                 ->execute();
+  // if (!empty($result['node'])) {
+  //   $keys = array_keys($result['node']);
+  //   foreach ($keys as $nid) {
+  //     $node = node_load($nid);
+  //     $wrapper = entity_metadata_wrapper('node', $node);
+      // db_insert('mc_network_actions')->fields(array(
+      //   'processed' => 0,
+      //   'type' => __FUNCTION__,
+      //   'project' => $wrapper->field_identifier->value(),
+      //   'callback' => 'drupal_flush_all_caches',
+      //   'data' => serialize(
+      //     array(
+      //       'uid' => $account->uid,
+      //       'mail' => $account->mail,
+      //       'uuid' => $account->uuid,
+      //     )
+      //   ),
+      //   'created' => $_SERVER['REQUEST_TIME'],
+      //   'changed' => $_SERVER['REQUEST_TIME'],
+      // ))->execute();
+  //     unset($wrapper);
+  //     unset($node);
+  //   }
+  // }
+}
+
+/**
+ * Enable login_emailusername module
+ */
+function mc_update_7001(&$sandbox) {
+  module_enable(array('login_emailusername'));
+}
+
+/**
+ * Update page field_pubstat instance. Hide it.
+ */
+function mc_update_7002() {
+  // Fetch an instance info array.
+  $instance_info = field_info_instance('node', 'field_pubstat', 'page');
+  // Change a single property in the instance definition.
+  unset($instance_info['display']['default']['module']);
+  $instance_info['display']['default']['type'] = 'hidden';
+  // Write the changed definition back.
+  field_update_instance($instance_info);
+}
+
+/**
+ * Turn off theme debug
+ */
+function mc_update_7003() {
+  if (drupal_is_cli()) {
+    $hostname = php_uname('n');
+    if ($hostname == 'stagemc2.dlib.nyu.edu' || $hostname == 'mc2.dlib.nyu.edu') {
+      variable_set('theme_debug', 0);
+      $modules = array(
+        'devel',
+        'ds_devel',
+      );
+      module_disable($modules);
+    }
+  }
+}
+
+/**
+ * Enable projects module
+ */
+function mc_update_7004(&$sandbox) {
+  module_enable(array('mediacommons_managment'));
+  module_enable(array('mediacommons_api'));
+}
+
+// shutdown function
+function mc_shutdown() {
+  global $user;
+  if (
+    isset($_SERVER['REQUEST_URI']) &&
+    isset($_SERVER['REMOTE_ADDR'])
+  ) {
+    $req_ulr = $_SERVER['REQUEST_URI'];
+    $ip = $_SERVER['REMOTE_ADDR'];
+    $regex[] = '2020livestream';
+    $regex[] = 'admin-ajax.php';
+    $regex[] = 'totalsportek';
+    $regex[] = 'phpmyadmin';
+    $regex[] = 'framework.php';
+    $regex[] = 'total-free';
+    $regex[] = 'logon.aspx';
+    $regex[] = 'full-ncaatv';
+    $regex[] = 'live-tsn';
+    $regex[] = 'redditfree';
+    $regex[] = 'wp-includes';
+    $regex[] = 'wp-login';
+    $regex[] = 'wp-admin';
+    $regex[] = 'livestreamofficial';
+    $regex[] = 'images_cn';
+    $regex[] = 'debug.xml';
+    $regex[] = 's_noeval.php';
+    $regex[] = 'phpunit';
+    $regex[] = 'ncaamonline';
+    $regex[] = 'formLogin';
+    $regex[] = 'wp-content';
+    $regex[] = 'streaming-live';
+    $regex[] = 'officiallive';
+    $regex[] = 'login.action';
+    $regex[] = 'CHANGELOG';
+    $regex[] = 'xmldata';
+    $regex[] = 'jbossmq-httpil';
+    $regex[] = 'spiffymcgee';
+    $regex[] = 'wp-login';
+    $regex[] = 'joomla.xml';
+    $regex[] = 'thinkphp';
+    $regex[] = 'elrekt.php';
+    $regex[] = 'w00tw00t';
+    $regex[] = 'phpMyAdmin';
+    $regex[] = 'setup.php';
+    $regex[] = '0bef';
+    $regex[] = 'livetennis';
+    $regex[] = 'swip\/Events';
+    $regex[] = 'include\/data';
+    $regex[] = 'data\/admin';
+    $regex[] = 'data\/admin';
+    $regex[] = 'data\/cache';
+    $regex[] = 'dede\/img';
+    $regex[] = 'uploads\/userup';
+    $regex[] = 'TP\/public\/index.php';
+    $regex[] = 'carbuyaction.php';
+    $regex[] = 'bookfeedback.php';
+    $regex[] = 'movie-hd-free-download';
+    $regex[] = 'live-stream';
+    $regex[] = 'movie-online-free';
+    $regex[] = 'wp-stats.php';
+    $regex[] = 'TP\/index.php';
+    $regex[] = 'dns-query';
+    $regex[] = 'HNAP1';
+    $regex[] = 'blackhat.php';
+    $regex[] = 'ReportServer';
+    $regex[] = 'adminer.php';
+    $regex[] = 'install.php';
+    $regex[] = 'admincp.js';
+    $regex[] = '\.aspx';
+    $regex[] = '\.jsp';
+    $regex[] = '\.axd';
+    $regex[] = '\.exe';
+
+    $regstring = '/' . implode('|', $regex) . '/';
+
+    preg_match($regstring, $req_ulr, $matches);
+
+    if (isset($matches) && !empty($matches)) {
+      $count = db_select('blocked_ips', 't')
+        ->condition('t.ip', $ip)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+      if ($count < 1) {
+        db_insert('blocked_ips')
+          ->fields(array('ip' => $ip))
+          ->execute();
+        $message = "%name (uid: %uid). IP %ip banned on %date.";
+        watchdog('mc', $message, array(
+          '%uid' => $user->uid,
+          '%name' => ($user->uid == 0) ? 'anonymous' : $user->name,
+          '%ip' => $ip,
+          '%date' => date('m/d/Y H:i:s ', $_SERVER['REQUEST_TIME']),
+        ), WATCHDOG_ERROR);
+      }
+    }
+  }
+}

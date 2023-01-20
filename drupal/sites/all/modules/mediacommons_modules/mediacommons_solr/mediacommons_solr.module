@@ -1,0 +1,242 @@
+<?php
+
+/**
+ * @file
+ * MediaCommons Integration with the Apache Solr module.
+ */
+
+include_once 'mediacommons_solr.index.inc';
+
+include_once 'mediacommons_solr.results.inc';
+
+/**
+ * Implements hook_theme($existing, $type, $theme, $path)
+ * Register a module (or theme's) theme implementations.
+ * See: mediacommons_solr_preprocess_search_result
+ * See: https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_theme/7.x
+ */
+
+function mediacommons_solr_form_alter(&$form, &$form_state, $form_id) {
+  if ($form_id=="apachesolr_search_custom_page_search_form") {    
+    $form['#attributes'] = array('role' => 'search', 'class' => array('search-results-input'));
+    $form['#id'] = 'search-block-form-mcsolr';     
+    if (isset($form['basic']['retain-filters'])) {
+      $form['retain-filters'] = array(
+        '#type' => 'container',
+        '#attributes' => array('class' => array('retain-filters')),
+      );         
+      $form['retain-filters'] = $form['basic']['retain-filters'];
+      unset($form['basic']['retain-filters']);
+    }    
+     $form['basic']['keys']['#attributes']['aria-label']= t('Search');         
+    $form['basic']['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('')
+    );
+    $form['basic']['#attributes'] = array('class' => array('search-contain'));    
+  }
+}
+
+function mediacommons_solr_theme() {
+  $themes = array();
+  $templates = drupal_get_path('module', 'mediacommons_solr') . '/templates';
+  foreach (node_type_get_types() as $bundle => $type) {
+    $template_node = 'mediacommons_solr_search_result__' . $bundle;
+  // nodes
+    if (file_exists($templates . '/' . $template_node . '.tpl.php')) {
+    $template_node_file = 'templates/' . $template_node;
+      $themes [$template_node] = array(
+        'variables' => array(),
+        'template' => $template_node_file,
+      );
+    }
+    // comments
+    $template_comment = 'mediacommons_solr_search_result__comment_node_' . $bundle;
+    if (file_exists($templates . '/' . $template_comment . '.tpl.php')) {
+      $template_comment_file = 'templates/' . $template_comment;
+      $themes [$template_comment] = array(
+        'variables' => array(),
+        'template' => $template_comment_file,
+      );
+    }
+  }
+
+  $themes['mediacommons_solr_search_results'] = array(
+    'variables' => array(),
+    'template' => 'templates/mediacommons_solr_search_results',
+  );
+
+  $themes['mediacommons_solr_search_result__base'] = array(
+    'variables' => array(),
+    'template' => 'templates/mediacommons_solr_search_result__base',
+  );
+  $themes['mediacommons_solr_hcard'] = array(
+    'variables' => array(
+      'peoplelist' => array(),
+    ),
+    'template' => 'templates/mediacommons_solr_hcard',
+  );
+  return $themes;
+}
+
+/**
+ * Implements hook_user_view().
+ */
+function mediacommons_solr_user_view($account, $view_mode) {
+  $is_account = mediacommons_solr_is_account($account);
+}
+
+/**
+ * Implements hook_apachesolr_query_alter().
+ */
+function mediacommons_solr_apachesolr_query_alter(DrupalSolrQueryInterface $query) {
+  $name = $query->getName();
+  if ($name == 'apachesolr') {
+    $query->addParam('fq', '-bundle:review');
+  }
+  // add FL's
+  $query->replaceParam('fl', array_merge($query->getParam('fl'), mediacommons_solr_fls()));
+}
+
+/**
+ * Executes search depending on the conditions given.
+ */
+function mediacommons_solr_runsearch($keys = NULL, $conditions = NULL) {
+  // don't run empty query
+  if (!$keys) {
+    apachesolr_failure(t('Solr search'), $keys);
+    return array();
+  }
+
+  /**
+   * Include apachesolr_search forms
+   */
+  include_once(drupal_get_path('module', 'apachesolr_search') . '/apachesolr_search.pages.inc');
+
+  $results = array();
+
+  $params = array();
+
+  $solrsort = '';
+
+  $query_params = drupal_get_query_parameters();
+
+  // Load search page
+  $search_page = apachesolr_search_page_load(apachesolr_search_default_search_page());
+
+  // Verify if it actually loaded
+  if (empty($search_page)) {
+    // Something must have been really messed up.
+    apachesolr_failure(t('Solr search'), $keys);
+    return array();
+  }
+
+  // Check input variables
+  if (empty($conditions)) {
+    $conditions = apachesolr_search_conditions_default($search_page);
+  }
+
+  if (isset($conditions['sort'])) {
+    $solrsort = $params['sort'] = $conditions['sort'];
+  }
+
+  // What to do when we have an initial empty search
+  $empty_search_behavior = isset($search_page['settings']['apachesolr_search_browse']) ? $search_page['settings']['apachesolr_search_browse'] : '';
+
+  try {
+
+    $solr = apachesolr_get_solr($search_page['env_id']);
+
+    // Default parameters
+    $params['fq'] = isset($conditions['fq']) ? $conditions['fq'] : array();
+
+    $params['rows'] = $search_page['settings']['apachesolr_search_per_page'];
+
+    if (isset($conditions['spellcheck'])) {
+      $params['spellcheck'] = (string) $conditions['spellcheck'];
+    }
+    elseif (empty($search_page['settings']['apachesolr_search_spellcheck'])) {
+      // Spellcheck needs to have a string as false/true
+      $params['spellcheck'] = 'false';
+    }
+    else {
+      $params['spellcheck'] = 'true';
+    }
+
+    // Full text behavior. Triggers with a text search or a facet
+
+    // Don't allow local params to pass through to EDismax from the url.
+    // We also remove any remaining leading {! since that causes a parse
+    // error in Solr.
+    $keys = preg_replace('/^(?:{![^}]*}\s*)*(?:{!\s*)*/',' ', $keys);
+
+    $params['q'] = $keys;
+
+    // Hardcoded apachesolr name since we rely on this for the facets
+    $context = array(
+      'page_id' => $search_page['page_id'],
+      'search_type' => 'apachesolr_search_results',
+    );
+
+    // If we execute more than 2 search and one of the search does
+    // not return value, we run into problems of the 2 queries failing
+    // to return a value
+    $results = apachesolr_search_run('mediacommons_apachesolr' . uniqid(), $params, $solrsort, $search_page['search_path'], pager_find_page(), $solr, $context);
+
+  }
+  catch (Exception $e) {
+    watchdog('MediaCommons Solr', nl2br(check_plain($e->getMessage())), NULL, WATCHDOG_ERROR);
+    apachesolr_failure(t('Solr search'), $keys);
+  }
+
+  return $results;
+
+}
+
+function mediacommons_solr_is_account($account = NULL) {
+  $is_account = &drupal_static('is_account');
+  if (!isset($is_account)) {
+    if (isset($account) && isset($account->uid)) {
+      $is_account = $account->uid;
+    }
+    else {
+      $args = arg();
+      if (count($args) == 2 && $args [0] == 'user') {
+        $is_account = intval($args[1]);
+      }
+    }
+  }
+  return $is_account;
+}
+
+function mediacommons_solr_fls() {
+  return array (
+    'ss_project',
+    'ss_baseurl',
+    'ss_searchtype',
+    'ss_projectname',
+    'ss_projectclass',
+    'im_coeditor',
+    'im_curatorseditors',
+    'im_contributor',
+    'im_reviewer',
+    'ss_pubdate',
+    'is_comment_count',
+    'ss_comment_count',
+    'zs_reviewer', // JSON object
+    'zs_contributors', // JSON object
+    'zs_curatorseditors', // JSON object
+    'zs_coeditor', // JSON object
+    'zs_ri', // JSON object including all image styles URL
+    'zs_reviewers',
+    'ss_periodstart',
+    'ss_createddate',
+    'ss_cdyyyymmdd',
+    'ss_pubdate',
+    'ss_periodend',
+    'ss_enddate',
+    'ss_edyyyymmdd',
+    'ss_referencedspoke',
+    'ds_pubdated',
+  );
+}

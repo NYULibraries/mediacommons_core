@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Mediacommons homepage featured feature.
+ */
+
+include_once 'mediacommons_homepage_featured.features.inc';

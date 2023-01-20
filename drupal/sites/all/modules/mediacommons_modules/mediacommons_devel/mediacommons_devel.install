@@ -1,0 +1,32 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the mediacommons_devel module.
+ */
+
+/**
+ * Implements hook_enable().
+ *
+ * @ingroup mediacommons_devel
+ */
+function mediacommons_devel_enable () {
+  $email_address = db_query("SELECT mail FROM {users} WHERE uid = 1")->fetchField();
+  variable_set('reroute_email_address', $email_address);
+  variable_set('reroute_email_enable', 1);
+  variable_set('reroute_email_enable_message', 1);
+  cache_clear_all();
+}
+
+/**
+ * Implements hook_disable().
+ * 
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_disable/7.x
+ * @ingroup mediacommons_devel
+ */
+function mediacommons_devel_disable () {
+  variable_set('reroute_email_address', '');
+  variable_set('reroute_email_enable', 0);
+  variable_set('reroute_email_enable_message', 0);
+  cache_clear_all();
+}

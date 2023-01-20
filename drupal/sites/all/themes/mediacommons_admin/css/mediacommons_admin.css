@@ -1,0 +1,57 @@
+/**
+ * @file
+ * Main theme stylesheet.
+ */
+
+fieldset.group-public-profile #edit-picture .fieldset-title {
+    margin: 0;
+    padding: 9px 0 0 9px;
+    color: #666;
+    font-weight: bold;
+    font-size: 10px;
+  
+}
+fieldset {
+   padding: 1px;
+}
+
+#page .imagefield-crop-widget img, #page .image-widget img {
+  /* Important!  This prevents the imagefield widget from breaking in Rubik */
+  max-width: none;
+ }
+input#edit-field-representative-image-und-0-upload {
+  margin-left: 10px;
+}
+#edit-field-attached-images-und img {
+  max-width: 100%;
+  height: auto;
+
+}
+ .tao .field-name-field-representative-image {
+   margin: 20px 0;
+   border: 1px solid #ccc;
+ }
+
+ .tao .field-name-field-representative-image label[for="edit-field-representative-image-und-0-upload"] {
+   padding: 10px;
+   border-bottom: 1px solid #ccc;
+   margin-bottom: 20px;
+   background-color: #eee;
+ }
+
+ .tao .field-name-field-representative-image .image-widget {
+   padding: 10px;
+   margin-bottom: 20px;
+ }
+
+ .tao .field-name-field-representative-image div.image-preview {
+   padding-right: 50px;
+ }
+
+ .tao .field-name-field-representative-image .manualcrop-preview-cropped {
+   border: 1px solid #ccc;
+ }
+
+ .tao .field-name-field-representative-image .form-item-field-representative-image-und-0-alt {
+ 	margin-top: 40px ;
+ }

@@ -1,0 +1,11 @@
+name = MediaCommons Global Navigation
+description = Horizontal bar for moving among projects
+core = 7.x
+version = 7.x-1.0
+project = mediacommons_globalnav
+package = MediaCommons
+
+dependencies[] = menu
+
+scripts[] = underscore-min.js
+scripts[] = mediacommons_globalnav.js

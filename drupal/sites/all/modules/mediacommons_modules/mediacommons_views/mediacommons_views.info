@@ -1,0 +1,7 @@
+name = MediaCommons Views
+core = 7.x
+package = MediaCommons
+version = 7.x-1.0
+project = mediacommons_views
+dependencies[] = views
+dependencies[] = drupal:system (>= 7.40)

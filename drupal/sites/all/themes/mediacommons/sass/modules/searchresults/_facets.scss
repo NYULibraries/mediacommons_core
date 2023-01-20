@@ -1,0 +1,101 @@
+.block-facetapi {
+  background-color: #cacaca;
+  padding: 12px;
+  &:not(:first-child) {
+    margin-top: 50px;
+  }
+  header {
+    font-size: 1rem;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+}
+.facetapi-limit-link {
+  text-transform: uppercase;
+  text-align: right;
+  display: block;
+  font-size: .9rem;
+  &:link, &:visited{
+    color: black !important;
+  }
+}
+.responsive-container {
+  .responsive-disclosure {
+    //display: inline-block;
+    min-height: 15px;
+    float: left;
+    margin-right: .6em;
+  }
+  header {
+    cursor: pointer;
+  }
+  @include respond-to("not desktop") {
+    &:not(.is-open) .item-list {
+      // when the facets load in mobile, they should start out closed
+      display: none;
+    }
+  }
+  @include respond-to("desktop") {
+    header {
+      cursor: default;
+    }
+    .responsive-disclosure {
+      display: none;
+    }
+    .item-list[style] {
+      display: block !important;
+    }
+  }
+}
+
+.facetapi-facetapi-links {
+  li {
+    margin-bottom: 4px;
+  }
+  a:link,
+  a:visited {
+    transition: all .2s ease;
+    background-color: #EAE9E8; // box-shadow: inset 0px 0px 0px 1px #eee;
+    display: block;
+    padding: 8px;
+    font-size: .9rem;
+    position: relative;
+    &.facetapi-active {
+      box-shadow: none;
+      background-color: #ffffff; //color: black;
+      .removeme {
+        font-size: 9px;
+        color: #999 !important;
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        transition: all .2s ease-in-out;
+      }
+    }
+  }
+  a.facetapi-active:hover {
+    text-decoration: none !important;
+    .removeme {
+      color: red !important;
+    }
+  }
+
+  a:not(.facetapi-active):hover {
+    // box-shadow: inset 0px 0px 0px 3px #fff;
+    box-shadow: 1px 1px 3px 0px rgba(50, 50, 50, 0.5);
+    background-color: #EFEFEF;
+    text-decoration: none !important;
+  }
+  body.mc & {
+    a:link,
+    a:visited {
+      color: #222;
+    }
+  }
+}
+
+.facetapi-count {
+
+  font-size: .8rem;
+  color: #676666 !important;
+}

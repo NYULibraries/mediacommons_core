@@ -1,0 +1,52 @@
+{
+  "nodes": [
+    {
+      "label": "MediaCommons",
+      "identifier": "mediacommons",
+      "shortname": "mc",      
+      "description": "MediaCommons is a community network for scholars, students, and practitioners in media studies, promoting exploration of new forms of publishing within the field. MediaCommons was founded in 2006 in collaboration with the Institute for the Future of the Book, and was relaunched in 2008 with support from the National Endowment for the Humanities and the collaboration of the NYU Libraries Digital Library Technology Services. We are thrilled to have relaunched MediaCommons once again in 2018, on an updated platform developed by NYU DLTS.",
+      "logo": "",
+      "path": "/"
+    },
+    {
+      "label": "Fieldguide",
+      "identifier": "fieldguide",
+      "shortname": "fieldguide",      
+      "description": "",
+      "logo": "",
+      "path": "/fieldguide"
+    },
+    {
+      "label": "#alt-academy: Alternative Academic Careers",
+      "identifier": "altac",
+      "shortname": "altac",      
+      "description": "Humanities scholars come from a wide array of backgrounds and embark on a variety of careers in areas like libraries, museums, archives, higher education and humanities administration, publishing, research and technology, and more. To learn more about these varied career paths, in 2013 the Scholarly Communication Institute conducted a study on career preparation in humanities graduate programs. The study included two confidential surveys: one for people on alternative academic career paths (that is, people with graduate training in the humanities and allied fields working beyond the professoriate); and another for their employers. The report, data, and ancillary materials are available at the links below.",
+      "logo": "",
+      "path": "/alt-ac"
+    },
+    {
+      "label": "In Media Res",
+      "identifier": "imr",
+      "shortname": "imr",      
+      "description": "In Media Res is dedicated to experimenting with collaborative, multi-modal forms of online scholarship. Our goal is to promote an online dialogue amongst scholars and the public about contemporary approaches to studying media. In Media Res provides a forum for more immediate critical engagement with media at a pace closer to how we experience mediated texts.",
+      "logo": "",
+      "path": "/imr"
+    },
+    {
+      "label": "[in]Transition",
+      "identifier": "intransition",
+      "shortname": "intransition",      
+      "description": "[in]Transition – a collaboration between MediaCommons and the Society for Cinema and Media Studies’ official publication, Journal of Cinema & Media Studies – is the first peer-reviewed academic journal of videographic film and moving image studies, and is fully open access with no fees to publish or read. Subscribe to our email list to receive links to new issues.",
+      "logo": "",
+      "path": "/intransition"
+    },
+    {
+      "label": "The New Everyday",
+      "identifier": "tne",
+      "shortname": "tne",      
+      "description": "The New Everyday aims to be a forum for these inventories and analyses. And it aims to infuse this investigation with “creative energies” by experimenting with the means and modalities of critical investigation. As we examine the mediated everyday, we’ll involve those same everyday media as tools in our examination. Do particular formats or genres of expression uniquely capture various dimensions of everyday experience, or do certain aspects of the everyday elude mediation? And as we think through the everyday, what modalities best support our own rhetorical and expressive goals?",
+      "logo": "",
+      "path": "/tne"
+    }
+  ]
+}

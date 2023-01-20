@@ -1,0 +1,321 @@
+<?php
+
+/**
+ * @file
+ * Module file for mediacommons_filter.
+ */
+function mediacommons_filter_permission() {
+	return array (
+	  'administer mediacommons filters' => array(
+			'title' => t('Administer allowed external sources widget'),
+			'description' => t('Allow external sources in iframes'),
+		),
+	);
+}
+
+/**
+ * Implements hook_menu().
+ */
+function mediacommons_filter_menu() {
+  $items = array ();
+  $items['admin/config/content/external-sources'] = array (
+    'title' => 'Allow external sources',
+    'description' => t('Add and remove domains that are allowed as embeded content in the &lt;iframe> element.'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('mediacommons_filter_admin'),
+    'access arguments' => array ('administer mediacommons filters'),
+    'file' => 'mediacommons_filter.admin.inc',
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_help().
+ */
+function mediacommons_filter_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#mediacommons_filter':
+      return t("<p>To use these filters, go to !link and configure an input format, or create a new one.</p>",
+         array('!link' => l(t('admin/config/content/formats'), 'admin/config/content/formats'))
+      );
+  }
+}
+
+/**
+ * Implements hook_filter_info().
+ *
+ * Here we define the different filters provided by the module. For this
+ * example, time_filter is a very static and simple replacement, but it requires
+ * some preparation of the string because of the special html tags < and >. The
+ * foo_filter is more complex, including its own settings and inline tips.
+ */
+function mediacommons_filter_filter_info() {
+
+  $filters = array();
+
+  $filters['filter_iframe'] = array(
+    'title' => t('Limit allowed iframe sources'),
+    'description' => t('Remove iframes with unwanted sources.'),
+    'default settings' => array( 'filter_iframe' => 'mediacommons.futureofthebook.org', ),
+    'process callback' => '_filter_iframe_process',
+    'settings callback' => '_filter_iframe_settings',
+    'tips callback' => '_filter_iframe_tips',
+  );
+
+  $filters['filter_html'] = array(
+    'title' => t('Limit allowed HTML tags'),
+    'description' => t('Allows you to restrict the HTML tags the user can use. It will also remove harmful content such as JavaScript events, JavaScript URLs and CSS styles from those tags that are not removed.'),
+    'process callback' => '_mediacommons_filter_filter_html',
+    'settings callback' => '_mediacommons_filter_filter_html_settings',
+    'default settings' => array(
+      'allowed_html' => mediacommons_filter_allow_html(),
+      'filter_html_help' => 1,
+      'filter_html_nofollow' => 0,
+    ),
+    'tips callback' => '_filter_html_tips',
+  );
+
+  return $filters;
+}
+
+/**
+ * Implements callback_filter_process().
+ *
+ * Provides filtering of input into accepted HTML.
+ */
+function _mediacommons_filter_filter_html($text, $filter) {
+  $allowed_tags = preg_split('/\s+|<|>/', mediacommons_filter_allow_html(), -1, PREG_SPLIT_NO_EMPTY);
+  $text = filter_xss($text, $allowed_tags);
+  if ($filter->settings['filter_html_nofollow']) {
+    $html_dom = filter_dom_load($text);
+    $links = $html_dom->getElementsByTagName('a');
+    foreach ($links as $link) {
+      $link->setAttribute('rel', 'nofollow');
+    }
+    $text = filter_dom_serialize($html_dom);
+  }
+  return trim($text);
+}
+/**
+ * Implements callback_filter_settings().
+ *
+ * Filter settings callback for the HTML content filter.
+ */
+function _mediacommons_filter_filter_html_settings($form, &$form_state, $filter, $format, $defaults) {
+  $filter->settings += $defaults;
+  $settings['allowed_html'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Allowed HTML tags'),
+    '#default_value' => mediacommons_filter_allow_html(),
+    '#maxlength' => 1024,
+    '#description' => t('A list of HTML tags that can be used. JavaScript event attributes, JavaScript URLs, and CSS are always stripped.'),
+  );
+  $settings['filter_html_help'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display basic HTML help in long filter tips'),
+    '#default_value' => $filter->settings['filter_html_help'],
+  );
+  $settings['filter_html_nofollow'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Add rel="nofollow" to all links'),
+    '#default_value' => $filter->settings['filter_html_nofollow'],
+  );
+  return $settings;
+}
+
+function mediacommons_filter_cache_allowed_domains() {
+  $result = db_query('SELECT * FROM {mediacommons_filter}');
+  $cache = array();
+  foreach ($result as $record) {
+    $cache[$record->did] = $record->domain;
+  }
+  $expire = strtotime('+6 hour', time());
+  cache_set('cache_mediacommons_filter', $cache, 'cache', $expire);
+  return $cache;
+}
+
+/**
+ * Get the list of allowed domains.
+ *
+ * @return
+ *   An array of domains.
+ */
+function mediacommons_filter_get_allowed_domains() {
+	$cache = cache_get('cache_mediacommons_filter');
+	$domains = array();
+	if ($cache && ! empty($cache->data)) {
+    $domains = $cache->data;
+  }
+  else {
+    $domains = mediacommons_filter_cache_allowed_domains();
+  }
+  return $domains;
+}
+
+function mediacommons_filter_flush_caches() {
+	return array('cache_mediacommons_filter');
+}
+
+/**
+ * Settings callback for iframe filter.
+ *
+ * The settings defined in this form are stored in database by the filter
+ * module, and they will be available in the $filter argument.
+ */
+function _filter_iframe_settings($form, $form_state, $filter, $format, $defaults) {
+  $settings['filter_iframe'] = array(
+    '#type' => 'item',
+    '#title' => t('Domains  that are allow to be use in ifames'),
+    '#description' => t('Comma separated string of domains  that are allow (whitelisted) to be use with iframes.'),
+    '#markup' => t ('Manage !link.', array( '!link' => l( t('allowed domains'), 'admin/people/external-sources') ) ),
+  );
+  return $settings;
+}
+
+/**
+ * Foo filter process callback.
+ *
+ * The actual filtering is performed here. The supplied text should be returned,
+ * once any necessary substitutions have taken place. The example just replaces
+ * foo with our custom defined string in the settings page.
+ */
+function _filter_iframe_process($text, $filter, $format) {
+	if (!empty($text)) {
+    $allowed_domains = mediacommons_filter_get_allowed_domains();
+    include_once(libraries_get_path('simplehtmldom') . '/simple_html_dom.php');
+    $dom = str_get_html($text);
+    if (is_object($dom)) {
+      foreach ($dom->find('iframe') as $element) {
+        $parse_url = parse_url($element->src);
+        if (isset($parse_url['scheme']) && isset($parse_url['host']) && !in_array($parse_url['host'], $allowed_domains, TRUE)) {
+          $element->src = '';
+          $element->class = 'invalid-source';
+        }
+      }
+      $text = (string) $dom;
+    }
+  }
+  return $text;
+}
+
+/**
+ * Filter tips callback for iframe filter.
+ */
+function _filter_iframe_tips($filter, $format, $long = FALSE) {
+  if (!$long) {
+    // This string will be shown in the content add/edit form.
+    return t('Remove non-allowed iframe sources.');
+  }
+  else {
+    return t('Remove non-allowed iframe sources. You can add, edit or remove domains in !link.', array( '!link' => l( t('allowed domains'), 'admin/people/external-sources')));
+  }
+}
+
+function mediacommons_filter_form_alter(&$form, &$form_state, $form_id) {
+	if (isset($form_state['node'])) {
+		$form['actions']['submit']['#validate'][] = 'mediacommons_filter_node_validate_handler';
+	}
+}
+
+function mediacommons_filter_node_validate_handler($form, &$form_state) {
+  if (!isset($form_state['node'])) {
+    return TRUE;
+  }
+  include_once(libraries_get_path('simplehtmldom') . '/simple_html_dom.php');
+  $node = $form_state['values'];
+  $allowed_domains = mediacommons_filter_get_allowed_domains();
+  $fields = field_info_instances('node', $node['type']);
+  foreach ($fields as $key => $field) {
+    $field_info_instance = field_info_instance($field['entity_type'], $field['field_name'], $field['bundle']);
+    if ($field_info_instance['widget']['module'] === 'text') {
+      $this_field = $node[$key];
+      foreach ($this_field[$node['language']] as $value) {
+        $formats = filter_list_format($value['format']);
+        if (array_key_exists('filter_iframe', $formats)) {
+          $html = str_get_html($value['value']);
+          if (empty($html)) continue;
+          // Find all iframe
+          foreach ($html->find('iframe') as $element) {
+            $parse_url = parse_url($element->src);
+          	if (
+              isset($parse_url['scheme']) &&
+              isset($parse_url['host']) &&
+              !in_array($parse_url['host'], $allowed_domains, TRUE)) {
+          	  form_set_error($key, t('Found not valid iframe !source', array ('!source' => $element->src)));
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+function mediacommons_filter_allow_html() {
+  // https://jira.nyu.edu/jira/browse/MC-500
+  $allow_html = '<a> <abbr> <acronym> <address> <b> <header> <blockquote> <br> <caption> <cite> <code> <dd> <del> <div> <dl> <dt> <em> <h1> <h2> <h3> <h4> <h5> <h6> <hr> <i> <img> <ins> <li> <ol> <p> <pre> <quote> <small> <span> <strike> <time> <strong> <sub> <sup> <table> <tbody> <td> <th> <thead> <tr> <u> <ul> <iframe> <s>';
+  return $allow_html;
+}
+
+function mediacommons_filter_allowed_tags() {
+  $allowed_tags = array(
+    'a',
+    'em',
+    'strong',
+    'cite',
+    'code',
+    'ul',
+    'ol',
+    'li',
+    'dl',
+    'dt',
+    'dd',
+    'div',
+    'header',
+    'img',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'span',
+    'time',
+    's',
+  );
+  return $allowed_tags;
+}
+
+/**
+ * Update database table mediacommons_filter
+ */
+function mediacommons_filter_update_7001() {
+  $result = db_query('SELECT * FROM {mediacommons_filter}');
+  $domains = array();
+  foreach ($result as $record) {
+    $domains[] = $record;
+  }
+  db_drop_table('mediacommons_filter');
+  $schema = array(
+    'description' => 'The table for allowed iframe source.',
+    'fields' => array(
+      'did' => array(
+        'description' => 'The domain ID.',
+        'type' => 'varchar',
+      	'length' => 250,
+      ),
+      'domain' => array(
+        'description' => 'The domain source.',
+        'type' => 'text',
+      ),
+    )
+  );
+  db_create_table('mediacommons_filter', $schema);
+  foreach ($domains as $record) {
+    $update = array(
+      'did' => md5($record->domain),
+      'domain' => $record->domain,
+    );
+    db_insert('mediacommons_filter')->fields($update)->execute();
+  }
+
+}

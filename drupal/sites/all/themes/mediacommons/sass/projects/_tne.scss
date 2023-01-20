@@ -1,0 +1,31 @@
+  $spoke-default-thumb: "default_images/spoke-default-tne.svg";
+  $tne-logo: "mc-logos/tne.svg";
+  body.tne {
+    .logo {
+      background: image-url($tne-logo);
+      background-size: cover;
+      background-repeat: no-repeat;
+      width: 20rem;
+      @include respond-to("narrow navigation") {
+        background-position: bottom;
+        height: 2.5rem;
+      }
+    }
+    .mc_recent_comments .blockheader {
+      div:after {
+        content: " on TNE";
+      }
+    }
+    #block-views-contributors-this-hub-block .blockheader div:after {
+      content: " to this Cluster";
+    }
+    .field-name-field-representative-image {
+      background: image-url($spoke-default-thumb);
+      background-repeat: no-repeat;
+      background-size: cover;
+    }
+  }
+
+  .node-tne .field-name-field-project {
+    background-color: #158484;
+  }

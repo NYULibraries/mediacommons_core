@@ -1,0 +1,6 @@
+name = MediaCommons Twitter
+description = Display MediaCommons Twitter block
+package = MediaCommons
+core = 7.x
+dependencies[] = drupal:block
+dependencies[] = drupal:system (>= 7.50)

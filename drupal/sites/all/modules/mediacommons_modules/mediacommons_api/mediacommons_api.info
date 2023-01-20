@@ -1,0 +1,5 @@
+name = Mediacommons API
+core = 7.x
+package = MediaCommons
+version = 7.x-1.0
+project = mediacommons_api

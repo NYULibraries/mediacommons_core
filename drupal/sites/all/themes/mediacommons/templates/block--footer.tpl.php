@@ -1,0 +1,3 @@
+<nav class="footer-nav"><ul><li class="first"><a href="/about">About MediaCommons</a></li><li><a href="/editors">Editors</a></li><li><a href="/copyright">Copyright/Fair Use Policy</a></li></ul></nav>
+
+<div class="footer-nav credits" ><ul> <li class="first"><a class="external" href="https://www.nyu.edu/footer/accessibility.html" target="_blank">Accessibility</a></li><li class="powered">Powered by <a href="http://dlib.nyu.edu/dlts/" target="_blank" class="external">NYU DLTS</a></li></ul></div>

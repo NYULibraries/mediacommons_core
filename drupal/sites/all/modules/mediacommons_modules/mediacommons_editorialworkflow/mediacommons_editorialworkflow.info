@@ -1,0 +1,15 @@
+name = MediaCommons Editorial Workflow
+core = 7.x
+package = MediaCommons
+version = 7.x-1.0
+project = mediacommons_editorialworkflow
+dependencies[] = gravatar:gravatar
+dependencies[] = vertical_tabs_config
+dependencies[] = mediacommons_content_types
+dependencies[] = mediacommons_views
+dependencies[] = entity
+dependencies[] = drupal:system (>= 7.40)
+files[] = inc/user_picture_formatter.inc
+
+stylesheets[all][] = css/mediacommons_editorialworkflow.css
+scripts[] = js/mediacommons_editorialworkflow.js

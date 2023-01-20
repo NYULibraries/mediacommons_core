@@ -1,0 +1,98 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the mediacommons_block module.
+ */
+
+ /**
+  * Implements hook_field_schema().
+  *
+  * Defines the database schema of the field, using the format used by the
+  * Schema API.
+  *
+  * The data we will store here is just one 7-character element, even
+  * though the widget presents the three portions separately.
+  *
+  * All implementations of hook_field_schema() must be in the module's
+  * .install file.
+  *
+  * @see http://drupal.org/node/146939
+  * @see schemaapi
+  * @see hook_field_schema()
+  * @ingroup field_example
+  */
+function mediacommons_blocks_schema () {
+  $schema = array();
+  $schema['mediacommons_blocks_blocks'] = array(
+    'description' => 'Table for blocks',
+    'fields' => array(
+      'mbid' => array(
+        'type' => 'varchar', 
+        'length' => 255, 
+        'not null' => TRUE
+      ),
+      'type' => array(
+        'type' => 'int', 
+        'not null' => TRUE, 
+        'default' => 0
+      ),
+     	'label' => array(
+         'type' => 'text'
+      ),
+      'url' => array(
+        'type' => 'text'
+      ),
+      'callback' => array(
+        'type' => 'text'
+      ),
+      'content' => array(
+        'type' => 'text'
+      ),
+      'options' => array(
+        'type' => 'text'
+      ),
+     	'created' => array(
+         'type' => 'int', 
+         'not null' => TRUE, 
+         'default' => 0
+      ),
+     	'proceed' => array(
+         'type' => 'int', 
+         'not null' => TRUE, 
+         'default' => 0
+      ),
+      'expire' => array(
+        'description' => 'A Unix timestamp indicating when the cache entry should expire, or 0 for never.',
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+      ),       
+    ),
+    'primary key' => array('mbid'),
+ 	);
+  return $schema;
+}
+
+function mediacommons_blocks_enable () {
+  
+  $options = array(
+    'type' => 'fulltext',
+    'mbid' => 'mc_footer',    
+    'label' => 'Default footer',
+    'content' => '<div class="footer-nav credits" ><ul> <li class="first"><a class="external" href="https://www.nyu.edu/footer/accessibility.html" target="_blank">Accessibility</a></li><li class="powered">Powered by <a href="http://dlib.nyu.edu/dlts/" target="_blank" class="external">NYU DLTS</a></li></ul></div>',
+  );
+  
+  mediacommons_blocks_save_block($options);
+
+  // example of using a callback
+  $options = array(
+    'type' => 'callback',
+    'mbid' => 'mc_callback',    
+    'label' => 'Callback example',
+    'callback' => 'mediacommons_blocks_callback_example',
+  );
+  
+  mediacommons_blocks_save_block($options);  
+
+}

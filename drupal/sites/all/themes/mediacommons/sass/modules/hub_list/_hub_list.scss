@@ -1,0 +1,183 @@
+/* MODULES: Component styles that are layout independent */
+
+aside+h2 {
+  clear: both;
+}
+
+
+
+.node-hub {
+  .hub-title {
+    color: nth($black, 1);
+    a:link,
+    a:visited {
+      color: #111;
+    }
+  }
+
+  p {
+    margin: 0 0 .2em 0;
+  }
+  .field-name-field-body {
+    margin: .5rem 0 0 0;
+    line-height: 1.3;
+  }
+  .field-name-field-image-rights {
+    font-size: .85rem;
+    a:link,
+    a:visited {
+      // font-weight: bold;
+      text-decoration: underline;
+      color: inherit;
+    }
+  }
+  .field-name-field-period {
+    a:link,
+    a:visited {
+      color: nth($black, 2);
+    }
+    .field-label {
+      display: inline-block;
+      font-weight: normal;
+      margin-right: 5px;
+    }
+    .field-items {
+      display: inline-block;
+    }
+  }
+  &.view-mode-full {
+    .hubhead {
+      padding: 0rem 0 .4rem 0;
+    }
+    .default-image {
+      display: none;
+    }
+    .hub-title {
+      font-size: 2em;
+      padding: .6rem 0 .5rem 0;
+    }
+  }
+  &.node-teaser {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    border-bottom: 1px solid #cccccc;
+    padding: 1em 0;
+    .hub-title {
+      font-size: 1.5em;
+      padding: .2em 0 0 0;
+      margin: 0 0 .3em 0;
+    }
+    .group-flex1 {
+      min-width: 150px;
+      margin-right: 15px;
+      flex: 1 0 30%;
+      @include respond-to("mobile-sm2") {
+        margin-right: 0px;
+        flex: none;
+        width: 100%;
+      }
+    }
+    .group-flex2 {
+      flex: 1 0 64%;
+    }
+    .field-name-field-representative-image {
+      min-height: 7rem;
+      img {
+        width: 100%;
+        height: auto;
+        display: block;
+      }
+    }
+    .spokes {
+      margin-top: 20px;
+    }
+  }
+}
+
+.hubhead {
+  img {
+    max-width: 100% !important;
+    height: auto;
+    width: 100%;
+    display: block;
+  }
+  time {
+    font-size: .9rem;
+  }
+}
+
+.peoplelist.curator {
+  .hubhead & {
+    font-size: .9rem;
+  }
+  span {
+    &::after {
+      content: "";
+    }
+  }
+}
+
+.view-list-of-all-hubs .node-hub.node-teaser {
+  padding: 2em 0;
+}
+
+
+.page-previous {
+  h1.page-title {
+    margin-bottom: 30px;
+  }
+  .thumb {
+    width: 80px;
+    img {
+      width: 100%;
+      height: auto;
+    }
+  }
+}
+
+
+
+.view-list-of-all-hubs {
+  margin-top: 25px;
+
+  >header {
+    float: left;
+    line-height: 1rem;
+    font-size: 1rem;
+    color: #222222;
+    padding-top: 20px;
+    padding-bottom: 5px;
+  }
+  >.view-content {
+    clear: both;
+  }
+}
+
+body .view-filters {
+  text-align: right;
+  form {
+    margin: 0;
+  }
+  .views-exposed-widgets {
+    margin: 0;
+    padding-right: 10px;
+    padding-top: 7px;
+  }
+  .views-exposed-form {
+    label {
+      display: none;
+    }
+    .form-item {
+      margin-bottom: 4px;
+    }
+    .views-exposed-widget {
+      float: none;
+      padding: 0;
+      font-size: .8rem;
+    }
+    .views-submit-button {
+      display: none;
+    }
+  }
+}

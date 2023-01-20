@@ -1,0 +1,7 @@
+name = Mediacommons Devel
+core = 7.x
+package = MediaCommons
+version = 7.x-1.0
+project = mediacommons_devel
+dependencies[] = devel
+dependencies[] = reroute_email

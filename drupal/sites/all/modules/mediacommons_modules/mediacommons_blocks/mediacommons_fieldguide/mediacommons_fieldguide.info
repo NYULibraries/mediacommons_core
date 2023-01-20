@@ -1,0 +1,8 @@
+name = MediaCommons Fieldguide
+description = Display MediaCommons Fieldguide block
+package = MediaCommons
+core = 7.x
+dependencies[] = drupal:block
+dependencies[] = drupal:system (>= 7.50)
+dependencies[] = mediacommons_filter
+dependencies[] = mediacommons_blocks

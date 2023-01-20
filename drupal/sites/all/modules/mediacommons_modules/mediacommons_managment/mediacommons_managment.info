@@ -1,0 +1,9 @@
+name = Mediacommons Sites Managment
+core = 7.x
+package = Mediacommons modules
+version = 7.x-1.0
+project = mediacommons_managment
+description = Manage Mediacommons sites
+package = MediaCommons
+
+dependencies[] = projects

@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the MediaCommons Homepage Umbrella feature.
+ */
+
+include_once 'mediacommons_homepage_umbrella.features.inc';

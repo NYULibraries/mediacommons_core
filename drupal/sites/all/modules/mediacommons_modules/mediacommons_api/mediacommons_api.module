@@ -1,0 +1,495 @@
+<?php
+
+/**
+ * Implementation of hook_permission().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_permission/7.x
+ */
+ function mediacommons_api_permission() {
+  return array(
+    'access mediacommons api' => array(
+      'title' => t('Access MediaCommons API'),
+      'description' => t('Access MediaCommons API'),
+    )
+  );
+}
+
+/**
+ * Implements hook_menu().
+ * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_menu/7.x
+ */
+function mediacommons_api_menu() {
+
+  $items = array();
+
+  $items['api/v1/clusters'] = array(
+    'page callback' => 'mediacommons_api_list_clusters',
+    'access arguments' => array('access content'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/tags'] = array(
+    'page callback' => 'mediacommons_api_list_tags',
+    'access arguments' => array('access content'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/organizations'] = array(
+    'page callback' => 'mediacommons_api_list_organizations',
+    'access arguments' => array('access content'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/frontpage_feature'] = array(
+    'page callback' => 'mediacommons_api_frontpage_feature',
+    'access arguments' => array('access content'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/watchdog'] = array(
+    'page callback' => 'mediacommons_api_watchdog',
+    'access arguments' => array('access mediacommons api'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/online'] = array(
+    'page callback' => 'mediacommons_api_list_online_users',
+    'access arguments' => array('access mediacommons api'),
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['api/v1/search_form'] = array(
+    'page callback' => 'mediacommons_api_search_form',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+
+}
+
+function mediacommons_api_list_tags() {
+  $tags = array();
+  $query = "SELECT taxonomy_term_data.name AS taxonomy_term_data_name, taxonomy_term_data.vid AS taxonomy_term_data_vid, taxonomy_term_data.tid AS tid, taxonomy_vocabulary.machine_name AS taxonomy_vocabulary_machine_name, COUNT(DISTINCT node_taxonomy_index.nid) AS node_taxonomy_index_nid FROM {taxonomy_term_data} taxonomy_term_data LEFT JOIN {taxonomy_index} taxonomy_index ON taxonomy_term_data.tid = taxonomy_index.tid INNER JOIN {node} node_taxonomy_index ON taxonomy_index.nid = node_taxonomy_index.nid LEFT JOIN {taxonomy_vocabulary} taxonomy_vocabulary ON taxonomy_term_data.vid = taxonomy_vocabulary.vid WHERE (( (taxonomy_vocabulary.machine_name IN  ('tags')) )) GROUP BY taxonomy_term_data_name, taxonomy_term_data_vid, tid, taxonomy_vocabulary_machine_name ORDER BY node_taxonomy_index_nid DESC";
+  $tags = db_query($query)->fetchAll();
+  return (object) array('response' => $tags);
+}
+
+function mediacommons_api_list_organizations () {
+  $query = "SELECT taxonomy_term_data.name AS taxonomy_term_data_name, taxonomy_term_data.vid AS taxonomy_term_data_vid, taxonomy_term_data.tid AS tid, taxonomy_vocabulary.machine_name AS taxonomy_vocabulary_machine_name, COUNT(DISTINCT field_organization_taxonomy_term_data.uuid) AS field_organization_taxonomy_term_data_uuid, COUNT(field_organization_taxonomy_term_data.uuid) AS field_organization_taxonomy_term_data_uuid_1 FROM {taxonomy_term_data} taxonomy_term_data INNER JOIN {field_data_field_organization} field_data_field_organization ON taxonomy_term_data.tid = field_data_field_organization.field_organization_tid AND (field_data_field_organization.entity_type = 'user' AND field_data_field_organization.deleted = '0') INNER JOIN {users} field_organization_taxonomy_term_data ON field_data_field_organization.entity_id = field_organization_taxonomy_term_data.uid LEFT JOIN {taxonomy_vocabulary} taxonomy_vocabulary ON taxonomy_term_data.vid = taxonomy_vocabulary.vid WHERE (( (taxonomy_vocabulary.machine_name IN  ('organizations')) )) GROUP BY taxonomy_term_data_name, taxonomy_term_data_vid, tid, taxonomy_vocabulary_machine_name ORDER BY field_organization_taxonomy_term_data_uuid_1 DESC, taxonomy_term_data_name ASC";
+  $organizations = db_query($query)->fetchAll();
+  return (object) array('response' => $organizations);
+}
+
+function mediacommons_api_watchdog() {
+
+  return;
+  
+  $rows = [];
+
+  $classes = array(
+    WATCHDOG_DEBUG => 'debug',
+    WATCHDOG_INFO => 'info',
+    WATCHDOG_NOTICE => 'notice',
+    WATCHDOG_WARNING => 'warning',
+    WATCHDOG_ERROR => 'error',
+    WATCHDOG_CRITICAL => 'critical',
+    WATCHDOG_ALERT => 'alert',
+    WATCHDOG_EMERGENCY => 'emerg',
+  );
+
+  $query = db_select('watchdog', 'w');
+
+  $query->leftJoin('users', 'u', 'w.uid = u.uid');
+
+  $query->fields('w', array('wid', 'uid', 'severity', 'type', 'timestamp', 'message', 'variables', 'link'))->addField('u', 'name');
+
+  $query = $query->extend('PagerDefault')->limit(100);
+
+  // if (!empty($filter['where'])) {
+  //   $query->where($filter['where'], $filter['args']);
+  // }
+
+ $result = $query->execute();
+
+ foreach ($result as $dblog) {
+   $variables = unserialize($dblog->variables);
+   $rows[] = array(
+     'username' => $dblog->name,
+     'message' => $variables['!message'],
+     'function' => $variables['%function'],
+     'file' => $variables['%file'],
+     'line' => $variables['%line'],
+     'type' => $dblog->type,
+     'link' => filter_xss($dblog->link),
+     'date' => format_date($dblog->timestamp, 'short'),
+     'severity' => $classes[$dblog->severity],
+   );
+ }
+
+ return $rows;
+}
+
+function mediacommons_api_list_online_users() {
+  $msg = array();
+  if (user_access('access mediacommons api')) {
+    // Count users active within the defined period.
+    $interval = REQUEST_TIME - variable_get('user_block_seconds_online', 900);
+    // Perform database queries to gather online user lists. We use s.timestamp
+    // rather than u.access because it is much faster.
+    // Display a list of currently online users.
+    $max_users = 100;
+    if ($max_users) {
+      $msg['users'] = db_query_range('
+        SELECT
+          u.uid,
+          u.name,
+          u.mail,
+          MAX(s.timestamp) AS max_timestamp
+        FROM {users} u
+        INNER JOIN {sessions} s
+          ON u.uid = s.uid
+        WHERE s.timestamp >= :interval
+        AND s.uid > 0
+        GROUP BY u.uid, u.name
+        ORDER BY max_timestamp DESC', 0, $max_users, array(':interval' => $interval))->fetchAll();
+    }
+  }
+  return $msg;
+}
+
+function mediacommons_api_search_form() {
+
+  // Send appropriate HTTP-Header for browsers and search engines.
+
+  global $language;
+
+  drupal_add_http_header('Content-Type', 'text/html; charset=utf-8');
+
+  drupal_add_http_header('Content-Language', $language->language);
+
+  print render(drupal_get_form('search_block_form'));
+
+  exit();
+}
+
+function mediacommons_api_frontpage_feature() {
+
+  $query = "SELECT node.nid AS nid, node.created AS node_created, node.title AS node_title, nodequeue_nodes_node.position AS nodequeue_nodes_node_position, field_data_field_period.field_period_value2 AS field_data_field_period_field_period_value2, 'node' AS field_data_field_representative_image_node_entity_type, 'node' AS field_data_field_period_node_entity_type, 'node' AS field_data_field_curators_editors_node_entity_type
+            FROM
+            {node} node
+            LEFT JOIN {nodequeue_nodes} nodequeue_nodes_node ON node.nid = nodequeue_nodes_node.nid AND (nodequeue_nodes_node.qid = '1')
+            LEFT JOIN {field_data_field_period} field_data_field_period ON node.nid = field_data_field_period.entity_id AND (field_data_field_period.entity_type = 'node' AND field_data_field_period.deleted = '0')
+            WHERE (( (node.type IN  ('hub')) AND (node.status = '1') ))
+            ORDER BY nodequeue_nodes_node_position DESC, field_data_field_period_field_period_value2 DESC
+            LIMIT 6 OFFSET 1";
+
+  $find = db_query($query)->fetchAll();
+
+  $nodes = array();
+
+  foreach ($find as $data) {
+
+    $entity = node_load($data->nid);
+
+    $wrapper = entity_metadata_wrapper('node', $entity);
+
+    $nid = $data->nid;
+
+    $path = drupal_lookup_path('alias', 'node/' . $nid);
+
+    // title
+    $title = $entity->title;
+
+    // curators
+    $curators = array();
+    $field_curators_editors = $wrapper->field_curators_editors->value();
+    if ($field_curators_editors) {
+      foreach ($field_curators_editors as $contributor) {
+        $c = entity_metadata_wrapper('user', $contributor);
+        $o = $c->field_organization->value();
+        $curators[] = array(
+          'uid' => $contributor->uid,
+          'uuid' => $contributor->uuid,
+          'picture' => file_create_url($contributor->picture->uri),
+          'avatar' => 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G',
+          'title' => $c->field_title->value(),
+          'name' => $c->field_profile_name->value(),
+          'url' => $c->field_url->value(),
+          'organization' => array(
+            'vocabulary' => $o->vocabulary_machine_name,
+            'name' => $o->name,
+            'vid' => $o->vid,
+            'tid' => $o->tid,
+          ),
+        );
+        unset($c);
+        unset($o);
+      }
+    }
+
+    // representative image
+    $ri = $wrapper->field_representative_image->value();
+    if ($ri) {
+      $image = array(
+        'original' => file_create_url($ri['uri']),
+        'manual_crop_480_320' => image_style_url('manual_crop_480_320', $ri['uri']),
+        'manual_crop_thumbnail_120_by_80' => image_style_url('manual_crop_thumbnail_120_by_80', $ri['uri']),
+      );
+    } else {
+      $image = '';
+    }
+
+    // period
+    $p = $wrapper->field_period->value();
+
+    $start = format_date($p['value'], 'medium', 'n/d/Y');
+
+    $end = null;
+
+    if ($p['value2'] && ($p['value2'] != $p['value'])) {
+      $end = format_date($p['value2'], 'medium', 'n/d/Y');
+    }
+
+    $nodes[] = array(
+      'title' => $title,
+      'nid' => $nid,
+      'path' => $path,
+      'curators' => $curators,
+      'image' => $image,
+      'period' => array(
+        'start' => $start,
+        'end' => $end,
+      ),
+    );
+
+  }
+
+  return (object) array('response' => $nodes);
+
+}
+
+function mediacommons_api_list_clusters() {
+
+  $allowed_tags = mediacommons_filter_allowed_tags();
+
+  $allowed_tags[] = 'iframe';
+
+  $entities = array();
+
+  $nodes = db_query('
+    SELECT
+      n.nid FROM {node} n
+    WHERE
+      n.status = :status
+      AND
+      n.type = :type', array(':status' => 1, ':type' => 'hub')
+      )->fetchAll();
+
+  foreach ($nodes as $node) {
+    $entity = node_load($node->nid);
+    $wrapper = entity_metadata_wrapper('node', $entity);
+    $image = null;
+    $contributors = array();
+    $spokes = array();
+    $taxonomy = array();
+    $ri = $wrapper->field_representative_image->value();
+
+    if ($ri) {
+       $image = array(
+        'original' => file_create_url($ri['uri']),
+        'manual_crop_480_320' => image_style_url('manual_crop_480_320', $ri['uri']),
+        'manual_crop_thumbnail_120_by_80' => image_style_url('manual_crop_thumbnail_120_by_80', $ri['uri']),
+      );
+    }
+
+    foreach ($wrapper->field_contributors->value() as $contributor) {
+      $c = entity_metadata_wrapper('user', $contributor);
+      $o = $c->field_organization->value();
+      if (empty($contributor->picture->uri)) {
+        $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
+      } else {
+        $picture = file_create_url($contributor->picture->uri);
+      }
+      $contributors[] = array(
+        'uid' => $contributor->uid,
+        'uuid' => $contributor->uuid,
+        'picture' => $picture,
+        'avatar' => 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G',
+        'title' => $c->field_title->value(),
+        'name' => $c->field_profile_name->value(),
+        'url' => $c->field_url->value(),
+        'organization' => array(
+          'vocabulary' => $o->vocabulary_machine_name,
+          'name' => $o->name,
+          'vid' => $o->vid,
+          'tid' => $o->tid,
+        ),
+      );
+      unset($c);
+      unset($o);
+    }
+
+    foreach ($wrapper->field_taxonomy->value() as $t) {
+      $taxonomy[] = array(
+        'tid' => $t->tid,
+        'vid' => $t->vid,
+        'name' => $t->name,
+        'vocabulary' => $t->vocabulary_machine_name,
+      );
+    }
+
+    foreach ($wrapper->field_spokes->value() as $spoke) {
+      if ($spoke->status == 1) {
+
+        $spoke_contributors = array();
+
+        $s_wrapper = entity_metadata_wrapper('node', $spoke);
+
+        foreach ($s_wrapper->field_contributors->value() as $contributor) {
+          $c = entity_metadata_wrapper('user', $contributor);
+          $o = $c->field_organization->value();
+          $spoke_contributors[] = array(
+            'uid' => $contributor->uid,
+            'uuid' => $contributor->uuid,
+            'picture' => file_create_url($contributor->picture->uri),
+            'avatar' => 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G',
+            'title' => $c->field_title->value(),
+            'name' => $c->field_profile_name->value(),
+            'url' => $c->field_url->value(),
+            'organization' => array(
+              'vocabulary' => $o->vocabulary_machine_name,
+              'name' => $o->name,
+              'vid' => $o->vid,
+              'tid' => $o->tid,
+            ),
+          );
+          unset($c);
+          unset($o);
+        }
+
+        $field_embed = $s_wrapper->field_embed->value();
+
+        $spoke_field_body = $s_wrapper->field_body->value();
+
+        $spoke_field_taxonomy = $s_wrapper->field_taxonomy->value();
+
+        $spoke_taxonomy = array();
+
+        if (!empty($spoke_field_taxonomy)) {
+          foreach ($spoke_field_taxonomy as $st) {
+            $spoke_taxonomy[] = array(
+              'vocabulary' => $st->vocabulary_machine_name,
+              'name' => $st->name,
+              'vid' => $st->vid,
+              'tid' => $st->tid,
+            );
+          }
+          unset($st);
+        }
+
+        $s_image = null;
+        $s_representative_image = $s_wrapper->field_representative_image->value();
+        if ($s_representative_image) {
+          $s_image = array(
+            'original' => file_create_url($s_representative_image['uri']),
+            'manual_crop_480_320' => image_style_url('manual_crop_480_320', $s_representative_image['uri']),
+            'manual_crop_thumbnail_120_by_80' => image_style_url('manual_crop_thumbnail_120_by_80', $s_representative_image['uri']),
+          );
+        }
+
+        $s_comment = null;
+        if ($spoke->comment_count > 0) {
+          $s_comment = $spoke->comment_count;
+        }
+
+        $spokes[] = array(
+          'nid' => $spoke->nid,
+          'path' => drupal_lookup_path('alias', 'node/' . $spoke->nid),
+          'title' => $spoke->title,
+          'contributors' => $spoke_contributors,
+          'date' => format_date($s_wrapper->field_pubdate->value(), 'medium', 'l, F j, Y'),
+          'image' => $s_image,
+          'comment' => $s_comment,
+          'taxonomy' => $spoke_taxonomy,
+          'embed' => $field_embed['safe_value'],
+          'body' => $spoke_field_body['safe_value'],
+        );
+        unset($spoke_contributors);
+        unset($s_wrapper);
+      }
+    }
+
+    $curators = array();
+
+    $field_curators_editors = $wrapper->field_curators_editors->value();
+
+    if ($field_curators_editors) {
+      foreach ($field_curators_editors as $contributor) {
+        $c = entity_metadata_wrapper('user', $contributor);
+        $o = $c->field_organization->value();
+        $curators[] = array(
+          'uid' => $contributor->uid,
+          'uuid' => $contributor->uuid,
+          'picture' => file_create_url($contributor->picture->uri),
+          'avatar' => 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G',
+          'title' => $c->field_title->value(),
+          'name' => $c->field_profile_name->value(),
+          'url' => $c->field_url->value(),
+          'organization' => array(
+            'vocabulary' => $o->vocabulary_machine_name,
+            'name' => $o->name,
+            'vid' => $o->vid,
+            'tid' => $o->tid,
+          ),
+        );
+        unset($c);
+        unset($o);
+      }
+    }
+
+    $body = $wrapper->field_body->value();
+
+    $p = $wrapper->field_period->value();
+
+    $start = format_date($p['value'], 'medium', 'l, F j, Y');
+
+    $end = null;
+
+    if ($p['value2'] && ($p['value2'] != $p['value'])) {
+      $end = format_date($p['value2'], 'medium', 'l, F j, Y');
+    }
+
+    $entities[] = (object) array(
+      'nid' => $entity->nid,
+      'path' => drupal_lookup_path('alias', 'node/' . $entity->nid),
+      'title' => $entity->title,
+      'name' => $entity->name,
+      'comment' => $entity->comment,
+      'type' => $entity->type,
+      'body' => $body['safe_value'],
+      'image' => $image,
+      'contributors' => $contributors,
+      'curators' => $curators,
+      'spokes' => $spokes,
+      'taxonomy' => $taxonomy,
+      'period' => array(
+        'start' => $start,
+        'end' => $end,
+      ),
+    );
+
+    unset($contributors);
+    unset($wrapper);
+    unset($entity);
+
+  }
+
+  return (object) array('response' => $entities);
+
+}

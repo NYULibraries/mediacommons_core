@@ -1,0 +1,287 @@
+.searchresults_sidebar {
+  margin-bottom: 50px;
+}
+
+.searchresults_content {
+  .form-item-keys {
+    label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+    }
+  }
+}
+
+.search-header-group {
+  width: auto;
+  overflow: auto;
+}
+
+.spelling-suggestions {
+  padding: 15px 0;
+
+  dt,
+  dd {
+    display: inline-block;
+    font-size: .8rem;
+  }
+
+  dd {
+    margin-left: 10px;
+  }
+}
+
+.page-search {
+  input[type="text"] {
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .form-type-textfield {
+    flex: 1 1 22rem;
+
+    @include respond-to("desktop") {
+      max-width: 500px;
+    }
+  }
+
+  input[type="submit"] {
+    flex: 1 0 70px;
+    max-width: 90px;
+    margin-right: 0px;
+
+    @include respond-to("not desktop") {
+      -webkit-appearance: none;
+    }
+  }
+}
+
+.searchresults_content h2 {
+  margin-top: 1.5rem;
+}
+
+.page-search-site #block-search-form {
+  display: none;
+}
+
+.searchresults_content {
+  .locator-text {
+    display: inline-block;
+    line-height: 1.8;
+  }
+
+  .select-hold {
+    float: right;
+
+    &:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+  }
+}
+
+.search-assist-info {
+  max-width: 35rem;
+  margin-top: 1.5rem;
+
+  li {
+    margin-top: .8rem;
+  }
+}
+
+.sr-item-group {
+  display: flex;
+
+  .sr-thumb-contain {
+    flex: 0 0 130px;
+
+    .thumb {
+      float: none !important;
+      width: auto !important;
+      max-width: none !important;
+    }
+  }
+
+  .node-meta {
+    flex: 1 0 75%;
+
+    .peoplelist {
+      float: none !important;
+    }
+
+    time, .comment-count {
+      float: none !important;
+
+      &::before {
+        content: "" !important;
+      }
+    }
+  }
+}
+
+.mc-searchresults {
+  clear: right;
+  margin-top: 50px;
+
+  .search-result.node-teaser {
+    // overriding defaults set elsewhere
+    padding: 40px 0 10px 0px;
+    margin-top: 30px;
+  }
+
+  .search-result {
+    position: relative;
+    border-top-width: 0px;
+    border-top-width: 4px;
+    padding: 40px 0 10px 0px;
+    margin-top: 40px;
+
+    @include respond-to("desktop") {
+      max-width: 50em;
+    }
+
+
+    .field-name-field-project {
+      // style for first of a series of project items
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    // The adjacent sibling combinator (+) separates two selectors and matches the second element only if it immediately follows the first element, and both are children of the same parent element.
+    &.node-imr + .node-imr,
+    &.node-fieldguide + .node-fieldguide,
+    &.node-alt + .node-alt,
+    &.node-int + .node-int,
+    &.node-tne + .node-tne {
+      border-top-width: 0px;
+      padding-top: 0px;
+      margin-top: 5px;
+
+      .field-name-field-project {
+        display: none;
+      }
+    }
+  }
+
+  .spoke-title {
+    margin-top: 0;
+
+    //overwrite border created in user.css
+    border-bottom: none;
+
+    a {
+      display: block;
+      padding: 0px;
+    }
+  }
+
+  .search-snippet-info {
+    padding: 0px;
+    margin: 0;
+    line-height: 1.35;
+    padding-top: 5px;
+    font-size: .8rem;
+  }
+
+  .node-hub {
+    .hub-title {
+      padding-top: 0;
+      font-size: 1.3rem;
+      line-height: 1.25;
+    }
+
+    .thumb {
+      width: 120px;
+      height: auto;
+    }
+  }
+
+  .node-comment {
+    .comment {
+      padding: 10px;
+
+      .h-card {
+        margin-bottom: 0px;
+      }
+    }
+
+    .peoplelist,
+    time {
+      font-size: .85rem;
+      margin-top: 2px;
+      margin-bottom: 0;
+    }
+
+    .referenced-node {
+      font-size: .85rem;
+
+      a:link,
+      a:hover,
+      a:active {
+        color: inherit;
+      }
+    }
+
+    .comment-body {
+      font-size: .85rem;
+      margin-top: .2rem;
+      display: none;
+    }
+
+    .comment-title {
+      padding: 0;
+      font-size: 1rem;
+      line-height: 1.4;
+      margin-bottom: 0;
+    }
+  }
+}
+
+.field-name-user-content,
+.field-name-user-content-hubs,
+.field-name-user-comments {
+  .field-label {
+    display: none;
+  }
+}
+
+.field-name-search-snippet {
+  clear: both;
+  font-size: .8rem;
+}
+
+@include respond-to("desktop") {
+  .searchresults_hold {
+    display: flex;
+    flex-wrap: nowrap;
+
+    .searchresults_sidebar {
+      flex: 0 0 300px;
+      padding-right: 45px;
+    }
+
+    .searchresults_content {
+      flex: 1 1 70%;
+      max-width: 49rem;
+    }
+  }
+}
+
+
+.peoplelist.curator .curatorlabel:not(:empty):after {
+  content: "Curated by ";
+}
+
+.node-imr .content-type:after {
+  content: "Theme Week:";
+}
+
+.node-imr .peoplelist.curator .curatorlabel:not(:empty):after {
+  content: "Theme week organized by ";
+}
