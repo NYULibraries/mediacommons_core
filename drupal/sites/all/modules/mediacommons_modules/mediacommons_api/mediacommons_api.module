@@ -19,7 +19,7 @@
  */
 function mediacommons_api_menu() {
 
-  $items = array();
+  $items = [];
 
   $items['api/v1/clusters'] = array(
     'page callback' => 'mediacommons_api_list_clusters',
