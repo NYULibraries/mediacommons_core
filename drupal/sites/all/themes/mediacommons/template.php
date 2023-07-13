@@ -263,7 +263,7 @@ function mediacommons_preprocess_node(&$variables) {
   $is_pjax = mediacommons_is_pjax();
   // give project names as classes to the items on the umbrella site front page
   if ($bundle == 'front_page_post') {
-    // name used for Fieldguide channel needs to be standardized 
+    // name used for Fieldguide channel needs to be standardized
     $projNameUsedSitewide = ($wrapper->field_project->value() == 'fg') ? 'fieldguide' : $wrapper->field_project->value();
     $variables['classes_array'][] = 'node-' . $projNameUsedSitewide;
   }
@@ -803,7 +803,7 @@ function mediacommons_is_pjax() {
 
 function get_url_for_mediacommons_site($placeholder_url) {
   $relative_path = str_replace( MEDIACOMMONS_DOMAIN_PLACEHOLDER, '', $placeholder_url );
-  return mc_get_root_url() . "/${relative_path}";
+  return mc_get_root_url() . "/$relative_path";
 }
 
 /**

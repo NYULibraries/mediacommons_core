@@ -62,9 +62,6 @@ function  mc_get_root_url() {
 
   // NOTE: gethostname() does not work for local /etc/hosts/ aliases.
   if (drupal_is_cli() && isset($GLOBALS['mc_umbrella_baseurl'])) {
-    // drush_log('Umbrella : ' . $GLOBALS['mc_umbrella_baseurl'], 'ok');
-    // drush_log('Site : ' . $GLOBALS['mc_site_baseurl'], 'ok');
-    // print_r($GLOBALS['mc_sites']);
     $root_url = $GLOBALS['mc_umbrella_baseurl'];
   }
   else {
@@ -128,42 +125,6 @@ function mediacommons_utilities_is_project_redirect($path) {
   else {
     return FALSE;
   }
-}
-
-/**
- * Implements hook_user_update()
- * @link https://api.drupal.org/api/drupal/modules%21user%21user.api.php/function/hook_user_update/7.x
- */
-function mc_user_update(&$edit, $account, $category) {
-  // $query = new EntityFieldQuery;
-  // $result = $query->entityCondition('entity_type', 'node')
-  //                 ->entityCondition('bundle', 'project')
-  //                 ->propertyCondition('status', 1)
-  //                 ->execute();
-  // if (!empty($result['node'])) {
-  //   $keys = array_keys($result['node']);
-  //   foreach ($keys as $nid) {
-  //     $node = node_load($nid);
-  //     $wrapper = entity_metadata_wrapper('node', $node);
-      // db_insert('mc_network_actions')->fields(array(
-      //   'processed' => 0,
-      //   'type' => __FUNCTION__,
-      //   'project' => $wrapper->field_identifier->value(),
-      //   'callback' => 'drupal_flush_all_caches',
-      //   'data' => serialize(
-      //     array(
-      //       'uid' => $account->uid,
-      //       'mail' => $account->mail,
-      //       'uuid' => $account->uuid,
-      //     )
-      //   ),
-      //   'created' => $_SERVER['REQUEST_TIME'],
-      //   'changed' => $_SERVER['REQUEST_TIME'],
-      // ))->execute();
-  //     unset($wrapper);
-  //     unset($node);
-  //   }
-  // }
 }
 
 /**

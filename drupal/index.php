@@ -16,7 +16,7 @@
  */
 define('DRUPAL_ROOT', getcwd());
 
-require_once DRUPAL_ROOT . '/vendor/autoload.php';
+// require_once DRUPAL_ROOT . '/vendor/autoload.php';
 
 require_once DRUPAL_ROOT . '/includes/bootstrap.inc';
 

@@ -13,67 +13,75 @@
 <!--[if IE 8]><html class="lt-ie9" <?php print $html_attributes; ?>><![endif]-->
 <!--[if (gte IE 9)|(gt IEMobile 7)]><!--><html <?php print $html_attributes . $rdf_namespaces; ?>><!--<![endif]-->
 <head>
-    <?php 
-    switch ($special_body_class): 
+    <?php
+    switch ($special_body_class):
+
+    // https://jira.nyu.edu/browse/MC-587
     case "alt": ?>
-      <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-2"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          
-          gtag('config', 'UA-30270469-2', { 'anonymize_ip': true });
-        </script>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-MDN2P2CESM"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-MDN2P2CESM');
+      </script>
     <?php break;
+
+    // https://jira.nyu.edu/browse/MC-588
     case "imr": ?>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-3"></script>
-        <script>
-          window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-
-          gtag('config', 'UA-30270469-3', { 'anonymize_ip': true });
-        </script>
-    <?php 
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-620Z0BY5J7"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-620Z0BY5J7');
+      </script>
+    <?php
     break;
+
+    // https://jira.nyu.edu/browse/MC-589
     case "int":  ?>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-4"></script>
-        <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
+       <!-- Google tag (gtag.js) -->
+       <script async src="https://www.googletagmanager.com/gtag/js?id=G-NCE9W08B82"></script>
+       <script>
+         window.dataLayer = window.dataLayer || [];
+         function gtag(){dataLayer.push(arguments);}
+         gtag('js', new Date());
 
-        gtag('config', 'UA-30270469-4', { 'anonymize_ip': true });
-        </script>
-     <?php 
+         gtag('config', 'G-NCE9W08B82');
+       </script>
+     <?php
     break;
+
+    // https://jira.nyu.edu/browse/MC-591
     case "mc": ?>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-1"></script>
-        <script>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-YRX14WBRQ8"></script>
+      <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
-        gtag('config', 'UA-30270469-1', { 'anonymize_ip': true });
-        </script>
-     <?php 
+        gtag('config', 'G-YRX14WBRQ8');
+      </script>
+     <?php
     break;
+
+    // https://jira.nyu.edu/browse/MC-593
     case "tne": ?>
-        <!-- Global site tag (gtag.js) - Google Analytics -->
-        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-5"></script>
-        <script>
+      <!-- Google tag (gtag.js) -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id=G-733X060GBL"></script>
+      <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         gtag('js', new Date());
-
-        gtag('config', 'UA-30270469-5', { 'anonymize_ip': true });
-        </script>
-    <?php 
+        gtag('config', 'G-733X060GBL');
+      </script>
+    <?php
     break;
+
+    // https://jira.nyu.edu/browse/MC-590
     case "fieldguide": ?>
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-30270469-7"></script>
@@ -86,8 +94,6 @@
         </script>
 
     <?php endswitch; ?>
-
-
   <?php print $head; ?>
   <title><?php print $head_title; ?></title>
   <?php if ($default_mobile_metatags): ?>
@@ -113,7 +119,7 @@
   <?php endif; ?>
     <script type="text/javascript">
       WebFontConfig = {
-        google: { families: [ 'Open+Sans:300,400,700:latin', 
+        google: { families: [ 'Open+Sans:300,400,700:latin',
           'Droid+Sans:400,700:latin'] }
       };
       (function() {
@@ -124,7 +130,7 @@
         wf.async = 'true';
         var s = document.getElementsByTagName('script')[0];
         s.parentNode.insertBefore(wf, s);
-      })(); 
+      })();
     </script>
 
 </head>

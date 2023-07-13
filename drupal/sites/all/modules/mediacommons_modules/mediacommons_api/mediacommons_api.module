@@ -1,6 +1,35 @@
 <?php
 
 /**
+ * A wildcard loader for nodes, using the identifier.
+ *
+ * @parameter $identifier
+ *  The value of nid for a node.
+ *
+ * @return object
+ *   A node object with the given value for nid.
+ */
+function nid_load($identifier) {
+
+  $identifier = filter_xss($identifier);
+
+  $query = new EntityFieldQuery();
+
+  $result = $query->entityCondition('entity_type', 'node')
+      ->propertyCondition('nid', $identifier)
+      ->propertyCondition('status', 1)
+      ->execute();
+
+  if (!empty($result['node'])) {
+    $keys = array_keys($result['node']);
+    $nid = array_pop($keys);
+    return node_load($nid);
+  }
+
+  return FALSE;
+}
+
+/**
  * Implementation of hook_permission().
  * https://api.drupal.org/api/drupal/modules%21system%21system.api.php/function/hook_permission/7.x
  */
@@ -19,53 +48,94 @@
  */
 function mediacommons_api_menu() {
 
+  // part_of: http://localhost/tne/api/v1/spoke/155/partof
+  // comments: http://localhost/tne/api/v1/spoke/155/comments
+  // contributors: http://localhost/tne/api/v1/spoke/155/contributors
+  // const spoke = await axios.get(`${endpoint}/api/mark-down/spokes/${doc.nid}`)
+  // const spokeUrl = `${endpoint}/api/v1/spoke`
+  // const hubsUrl = `${endpoint}/api/v1/hub`
+  // ${doc.url}/markdown
+
   $items = [];
 
-  $items['api/v1/clusters'] = array(
+  $items['api/v1/clusters'] = [
     'page callback' => 'mediacommons_api_list_clusters',
-    'access arguments' => array('access content'),
+    'access arguments' => [
+      'access content',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
-  );
+  ];
+
+  $items['api/v1/spokes'] = [
+    'page callback' => 'mediacommons_api_list_spokes',
+    'access arguments' => [
+      'access content',
+    ],
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+  ];
+
+  $items['api/v1/node/%nid'] = [
+    'page callback' => 'mediacommons_api_node_metadata',
+    'access arguments' => [
+      'access content',
+    ],
+    'delivery callback' => 'drupal_json_output',
+    'type' => MENU_CALLBACK,
+    'page arguments' => [ 3 ],
+  ];
 
   $items['api/v1/tags'] = array(
     'page callback' => 'mediacommons_api_list_tags',
-    'access arguments' => array('access content'),
+    'access arguments' => [
+      'access content',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
 
   $items['api/v1/organizations'] = array(
     'page callback' => 'mediacommons_api_list_organizations',
-    'access arguments' => array('access content'),
+    'access arguments' => [
+      'access content',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
 
   $items['api/v1/frontpage_feature'] = array(
     'page callback' => 'mediacommons_api_frontpage_feature',
-    'access arguments' => array('access content'),
+    'access arguments' => [
+      'access content',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
 
   $items['api/v1/watchdog'] = array(
     'page callback' => 'mediacommons_api_watchdog',
-    'access arguments' => array('access mediacommons api'),
+    'access arguments' => [
+      'access mediacommons api',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
 
   $items['api/v1/online'] = array(
     'page callback' => 'mediacommons_api_list_online_users',
-    'access arguments' => array('access mediacommons api'),
+    'access arguments' => [
+      'access mediacommons api',
+    ],
     'delivery callback' => 'drupal_json_output',
     'type' => MENU_CALLBACK,
   );
 
   $items['api/v1/search_form'] = array(
     'page callback' => 'mediacommons_api_search_form',
-    'access arguments' => array('access content'),
+    'access arguments' => [
+      'access content',
+    ],
     'type' => MENU_CALLBACK,
   );
 
@@ -89,7 +159,7 @@ function mediacommons_api_list_organizations () {
 function mediacommons_api_watchdog() {
 
   return;
-  
+
   $rows = [];
 
   $classes = array(
@@ -491,5 +561,229 @@ function mediacommons_api_list_clusters() {
   }
 
   return (object) array('response' => $entities);
+
+}
+
+function mediacommons_api_list_spokes() {
+  global $base_url;
+  $nodes = db_query('SELECT n.nid FROM {node} n WHERE n.status = :status AND n.type = :type', [':status' => 1, ':type' => 'spoke'])->fetchAll();
+  foreach ($nodes as $node) {
+    $wrapper = entity_metadata_wrapper('node', $node->nid);
+    $spokes[] = [
+      'title' => $wrapper->title->value(),
+      'path' => $base_url . '/api/v1/node/' . $node->nid,
+    ];
+  }
+  return (object) [
+    'response' => [
+      'docs' => $spokes,
+      'numFound' => count($spokes),
+    ]
+  ];
+}
+
+function mediacommons_api_list_reviews($nid) {
+
+  $docs = [];
+
+  $nodes = db_query('SELECT entity_id FROM {field_data_field_isreviewof} WHERE field_isreviewof_nid = :nid', [ ':nid' => $nid ])->fetchAll();
+
+
+  foreach ($nodes as $node) {
+    $entity = entity_load_single('node', $node->entity_id);
+    $wrapper = entity_metadata_wrapper('node', $entity);
+    foreach ($wrapper->field_reviewer->value() as $contributor) {
+      if (!empty($contributor)) {
+        $c = entity_metadata_wrapper('user', $contributor);
+        $o = $c->field_organization->value();
+        if (isset($contributor->picture) && !empty($contributor->picture->uri)) {
+          $picture = file_create_url($contributor->picture->uri);
+        } else {
+          $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
+        }
+        $contributors[] = [
+          'name' => $c->field_profile_name->value(),
+          'title' => $c->field_title->value(),
+          'mail' => $c->mail->value(),
+          'picture' => $picture,
+          'url' => $c->field_url->value(),
+          'organization' => $o->name,
+        ];
+      }
+    }
+    $docs[] = [
+      'title' => $wrapper->title->value(),
+      'reviewers' => $contributors,
+      'body' => $wrapper->body->value()['safe_value'],
+    ];
+  }
+
+  return [
+    'response' => [
+      'docs' => $docs,
+      'numFound' => count($docs),
+    ]
+  ];
+}
+
+function mediacommons_api_node_metadata($entity) {
+
+  $wrapper = entity_metadata_wrapper('node', $entity);
+
+  $contributors = [];
+
+  $taxonomy = [];
+
+  $attached_images = [];
+
+  $part_of = [];
+
+  $body = $wrapper->field_body->value();
+
+  $embed = $wrapper->field_embed->value();
+
+  $embeds = [];
+
+  try {
+    $dom = new DOMDocument();
+    $dom->loadHTML($embed['value']);
+    foreach ($dom->getElementsByTagName('iframe') as $iframe) {
+      $embeds[] = $iframe->getAttribute('src');
+    }
+  }
+  catch (Exception $e) {
+    //
+  }
+
+  foreach ($wrapper->field_contributors->value() as $contributor) {
+    $c = entity_metadata_wrapper('user', $contributor);
+    $o = $c->field_organization->value();
+    if (isset($contributor->picture) && !empty($contributor->picture->uri)) {
+      $picture = file_create_url($contributor->picture->uri);
+    } else {
+      $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
+    }
+    $contributors[] = [
+      'name' => $c->field_profile_name->value(),
+      'title' => $c->field_title->value(),
+      'mail' => $c->mail->value(),
+      'picture' => $picture,
+      'url' => $c->field_url->value(),
+      'organization' => $o->name,
+    ];
+  }
+
+  foreach ($wrapper->field_attached_images->value() as $field_attached_images) {
+    $uri = file_create_url($field_attached_images['uri']);
+    if (!empty($uri)) {
+      $parse_url = parse_url($uri);
+      $attached_images[] = 'https://mediacommons.org' . $parse_url['path'];
+    }
+  }
+
+  foreach ($wrapper->field_part_of->value() as $field_part_of) {
+    $hub = entity_metadata_wrapper('node', $field_part_of);
+    $hub_editors = [];
+    $hub_coeditors = [];
+    foreach ($hub->field_curators_editors->value() as $contributor) {
+      $c = entity_metadata_wrapper('user', $contributor);
+      $o = $c->field_organization->value();
+      if (isset($contributor->picture) && !empty($contributor->picture->uri)) {
+        $picture = file_create_url($contributor->picture->uri);
+      } else {
+        $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
+      }
+      $hub_editors[] = [
+        'name' => $c->field_profile_name->value(),
+        'title' => $c->field_title->value(),
+        'mail' => $c->mail->value(),
+        'picture' => $picture,
+        'url' => $c->field_url->value(),
+        'organization' => $o->name,
+      ];
+    }
+
+    foreach ($hub->field_co_editor->value() as $contributor) {
+      $c = entity_metadata_wrapper('user', $contributor);
+      $o = $c->field_organization->value();
+      if (isset($contributor->picture) && !empty($contributor->picture->uri)) {
+        $picture = file_create_url($contributor->picture->uri);
+      } else {
+        $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
+      }
+      $hub_coeditors[] = [
+        'name' => $c->field_profile_name->value(),
+        'title' => $c->field_title->value(),
+        'mail' => $c->mail->value(),
+        'picture' => $picture,
+        'url' => $c->field_url->value(),
+        'organization' => $o->name,
+      ];
+    }
+
+    $part_of[] = [
+      'title' => $field_part_of->title,
+      'editors' => $hub_editors,
+      'coeditors' => $hub_coeditors,
+    ];
+  }
+
+  $field_taxonomy = $wrapper->field_taxonomy->value();
+  if (!empty($field_taxonomy)) {
+    foreach ($field_taxonomy as $st) {
+      $taxonomy[$st->vocabulary_machine_name][] = $st->name;
+    }
+  }
+
+  $field_representative_image = $wrapper->field_representative_image->value();
+
+  $representative_image = '';
+  if ($field_representative_image) {
+    $representative_image = file_create_url($field_representative_image['uri']);
+    if (!empty($representative_image)) {
+      $parse_url = parse_url($representative_image);
+      $representative_image = 'https://mediacommons.org' . $parse_url['path'];
+    }
+  }
+
+  $comments = [];
+
+  if ($entity->comment_count > 0) {
+    $result = db_select('comment')->fields('comment', array('cid'))->condition('nid', $entity->nid, '=')->execute();
+    $cids = $result->fetchCol();
+    foreach(comment_load_multiple($cids) as $comment) {
+      $c = entity_metadata_wrapper('user', user_load($comment->uid));
+      $comments[] = [
+        'name' => $c->field_profile_name->value(),
+        'mail' => $c->mail->value(),
+        'subject' => $comment->subject,
+        'created' => format_date($comment->created, 'medium', 'l, F j, Y'),
+        'body' => $comment->comment_body['und'][0]['value'],
+      ];
+    }
+  }
+
+  $reviews = mediacommons_api_list_reviews($entity->nid);
+
+  if ($reviews['response']['numFound'] > 0) {
+    $reviews = $reviews['response']['docs'];
+  } else {
+    $reviews = [];
+  }
+
+  return (object) [
+    'id' => $entity->nid,
+    'title' => $entity->title,
+    'embed' => $embeds,
+    'body' => $body['safe_value'],
+    'tags' => $taxonomy['tags'],
+    'attached_images' => $attached_images,
+    'representative_image' => $representative_image,
+    'part_of' => $part_of,
+    'reviews' => $reviews,
+    'contributors' => $contributors,
+    'date' => format_date($wrapper->field_pubdate->value(), 'medium', 'l, F j, Y'),
+    'comments' => $comments,
+  ];
 
 }
