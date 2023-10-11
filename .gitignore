@@ -1,25 +1,6 @@
-# Ignore site
-drupal/sites/default
-drupal/sites/mediacommons.futureofthebook.org.mediacommons
-
 # Ignore configuration files that may contain sensitive information.
-drupal/sites/*/*settings*.php
-drupal/sites/example.sites.php
+sites/*/settings*.php
 
-# Ignore paths that contain generated content.
-drupal/files/
-drupal/sites/*/files
-drupal/sites/*/private
-drupal/sites/*/translations
-adminer.php
-.DS_Store
-
-*.lh
-
-# Intellij
-.idea/
-.vscode/
-
-nightwatch/*.png
-
-selenium-server.log
+# Ignore paths that contain user-generated content.
+sites/*/files
+sites/*/private
