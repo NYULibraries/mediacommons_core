@@ -2,15 +2,19 @@
 
 function _mediacommons_globalnav_config() {
 
-  if (function_exists('__host_sites')) {
+  $sitesconf = json_decode(file_get_contents('/sites.config.json'));
 
-    $sites = __host_sites();
+  $rootpath = explode('/', DRUPAL_ROOT);
 
-    $site_name = '';
+  $code = end($rootpath);
 
-    $menu_name = 'menu-mcglobalnav';
+  $base_url = $sitesconf->$code->url;
 
-    $leafs_increment = 0;
+  $site_name = $sitesconf->$code->label;
+
+  $menu_name = 'menu-mcglobalnav';
+
+  $leafs_increment = 0;
 
     $leaf_myaccount_increment = 0;
 
@@ -26,7 +30,7 @@ function _mediacommons_globalnav_config() {
 
     $leafs = array(
       array(
-        'link_path' => $sites['mediacommons'],
+        'link_path' => $sitesconf->mediacommons->url,
         'link_title' => 'Front page',
         'menu_name' => $menu_name,
         'expanded' => 1,
@@ -121,7 +125,7 @@ function _mediacommons_globalnav_config() {
 
      // Front Page Link for Mobile devices
       array(
-        'link_path' => $sites['mediacommons'],
+        'link_path' => $sitesconf->mediacommons->url,
         'link_title' => 'MediaCommons Front Page',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -132,7 +136,7 @@ function _mediacommons_globalnav_config() {
       ),
       // Field Guide
       array(
-        'link_path' => $sites['fieldguide'],
+        'link_path' => $sitesconf->fieldguide->url,
         'link_title' => 'Field Guide',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -144,7 +148,7 @@ function _mediacommons_globalnav_config() {
 
       // #Alt-Academy
       array(
-        'link_path' => $sites['alt-ac'],
+        'link_path' => $sitesconf->altac->url,
         'link_title' => '#Alt-Academy',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -156,7 +160,7 @@ function _mediacommons_globalnav_config() {
 
       // In Media Res
       array(
-        'link_path' => $sites['imr'],
+        'link_path' => $sitesconf->imr->url,
         'link_title' => 'In Media Res',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -168,7 +172,7 @@ function _mediacommons_globalnav_config() {
 
       // [in]Transition
       array(
-        'link_path' => $sites['intransition'],
+        'link_path' => $sitesconf->intransition->url,
         'link_title' => '[in]Transition',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -192,7 +196,7 @@ function _mediacommons_globalnav_config() {
 
       // The New Everyday
       array(
-        'link_path' => $sites['tne'],
+        'link_path' => $sitesconf->tne->url,
         'link_title' => 'The New Everyday',
         'menu_name' => $menu_name,
         'expanded' => 0,
@@ -201,9 +205,7 @@ function _mediacommons_globalnav_config() {
         'customized' => 1,
         'module' => 'menu',
       ),
-
     ),
-
   );
 
 
@@ -259,18 +261,6 @@ function _mediacommons_globalnav_config() {
   t('The New Everyday');
   t('[in]Transition');
 
-    //array(
-    //  'module' => 'menu',
-    //  'delta' => 'menu-mcglobalnav',
-    //  'theme' => $default_theme,
-    //  'status' => 1,
-    //  'weight' => 0,
-    //  'region' => 'globalnav',
-    //  'pages' => '',
-    //  'cache' => -1,
-    //  'visibility' => 0,
-    //),
-
   $menu_block = array(
     'module' => 'menu',
     'delta' => $menu_name,
@@ -293,15 +283,16 @@ function _mediacommons_globalnav_config() {
 
   variable_set('mediacommons_hostname', $hostname);
 
-  }
-
 }
 
-// https://www.webomelette.com/drupal-modules-debug-emails
 function mediacommons_globalnav_cron() {
+
   $hostname = gethostname();
+
   $mediacommons_hostname = variable_get('mediacommons_hostname');
+
   if ($mediacommons_hostname != $hostname) {
     _mediacommons_globalnav_config();
   }
+
 }
