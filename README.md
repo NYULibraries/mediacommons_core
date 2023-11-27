@@ -1,1 +1,0 @@
-# mediacommons_core
