@@ -588,7 +588,6 @@ function mediacommons_api_list_reviews($nid) {
 
   $nodes = db_query('SELECT entity_id FROM {field_data_field_isreviewof} WHERE field_isreviewof_nid = :nid', [ ':nid' => $nid ])->fetchAll();
 
-
   foreach ($nodes as $node) {
     $entity = entity_load_single('node', $node->entity_id);
     $wrapper = entity_metadata_wrapper('node', $entity);
@@ -706,9 +705,13 @@ function mediacommons_api_node_metadata($entity) {
   }
 
   foreach ($wrapper->field_part_of->value() as $field_part_of) {
+
     $hub = entity_metadata_wrapper('node', $field_part_of);
+
     $hub_editors = [];
+
     $hub_coeditors = [];
+
     foreach ($hub->field_curators_editors->value() as $contributor) {
       $c = entity_metadata_wrapper('user', $contributor);
       $o = $c->field_organization->value();
@@ -717,8 +720,9 @@ function mediacommons_api_node_metadata($entity) {
       } else {
         $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
       }
+
       $hub_editors[] = [
-        'name' => $c->field_profile_name->value(),
+        'name' => $c->field_profile_name->value() ? $c->field_profile_name->value() : $contributor->name,
         'title' => $c->field_title->value(),
         'mail' => $c->mail->value(),
         'picture' => $picture,
@@ -736,7 +740,7 @@ function mediacommons_api_node_metadata($entity) {
         $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
       }
       $hub_coeditors[] = [
-        'name' => $c->field_profile_name->value(),
+        'name' => $c->field_profile_name->value() ? $c->field_profile_name->value() : $contributor->name,
         'title' => $c->field_title->value(),
         'mail' => $c->mail->value(),
         'picture' => $picture,
@@ -745,23 +749,27 @@ function mediacommons_api_node_metadata($entity) {
       ];
     }
 
-  $wrapper_part_of = entity_metadata_wrapper('node', $field_part_of);
+    $field_representative_image = $hub->field_representative_image->value();
 
-  $field_representative_image = $wrapper_part_of->field_representative_image->value();
+    $file_uri = file_create_url(file_build_uri($field_representative_image['uri']));
 
-  $file_uri = file_create_url(file_build_uri($field_representative_image['uri']));
+    $hub_url = $base_url . "/" . drupal_get_path_alias("node/" . $field_part_of->nid);
 
+    $hub_parse_url = parse_url($hub_url);
+  
     $part_of[] = [
       'title' => $field_part_of->title,
-      'url' => $base_url . "/" . drupal_get_path_alias("node/" . $field_part_of->nid),
+      'path' => $hub_parse_url['path'],
       'editors' => $hub_editors,
       'coeditors' => $hub_coeditors,
       'representative_image' => $file_uri,
-      'body' => $wrapper_part_of->field_body->value()['safe_value'],
+      'body' => $hub->field_body->value()['safe_value'],
     ];
+
   }
 
   $field_taxonomy = $wrapper->field_taxonomy->value();
+
   if (!empty($field_taxonomy)) {
     foreach ($field_taxonomy as $st) {
       $taxonomy[$st->vocabulary_machine_name][] = $st->name;
@@ -804,7 +812,7 @@ function mediacommons_api_node_metadata($entity) {
     $reviews = [];
   }
 
-  $entity_url = $base_url . drupal_get_path_alias("node/" . $entity->nid);
+  $entity_url = $base_url . '/' . drupal_get_path_alias("node/" . $entity->nid);
 
   $parse_url = parse_url($entity_url);
 
