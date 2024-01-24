@@ -628,6 +628,8 @@ function mediacommons_api_list_reviews($nid) {
 
 function mediacommons_api_node_metadata($entity) {
 
+  global $base_url;
+
   $wrapper = entity_metadata_wrapper('node', $entity);
 
   $contributors = [];
@@ -652,7 +654,6 @@ function mediacommons_api_node_metadata($entity) {
     }
   }
   catch (Exception $e) {
-    //
   }
 
   foreach ($wrapper->field_contributors->value() as $contributor) {
@@ -663,15 +664,38 @@ function mediacommons_api_node_metadata($entity) {
     } else {
       $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
     }
+ 
+    // research_interests: field_taxonomy
+
+    $biography = $c->field_bio->value();
+    if ($biography && isset($biography['safe_value'])) {
+      $biography = $biography['safe_value'];
+    } else {
+      $biography = '';
+    }
+
     $contributors[] = [
+      'uid' => $contributor->uid,
+      'uuid' => $contributor->uuid,
       'name' => $c->field_profile_name->value(),
       'title' => $c->field_title->value(),
       'mail' => $c->mail->value(),
       'picture' => $picture,
       'url' => $c->field_url->value(),
       'organization' => $o->name,
+      'biography' => $biography,
+      'research_interests' => $c->field_taxonomy->value(),
+      'social_links' => [
+        'twitter' => $c->field_twitter->value(),
+        'aim' => $c->field_aim->value(),
+        'skype' => $c->field_skype->value(),
+      ],
     ];
+
   }
+
+  unset($biography);
+
 
   foreach ($wrapper->field_attached_images->value() as $field_attached_images) {
     $uri = file_create_url($field_attached_images['uri']);
@@ -721,10 +745,19 @@ function mediacommons_api_node_metadata($entity) {
       ];
     }
 
+  $wrapper_part_of = entity_metadata_wrapper('node', $field_part_of);
+
+  $field_representative_image = $wrapper_part_of->field_representative_image->value();
+
+  $file_uri = file_create_url(file_build_uri($field_representative_image['uri']));
+
     $part_of[] = [
       'title' => $field_part_of->title,
+      'url' => $base_url . "/" . drupal_get_path_alias("node/" . $field_part_of->nid),
       'editors' => $hub_editors,
       'coeditors' => $hub_coeditors,
+      'representative_image' => $file_uri,
+      'body' => $wrapper_part_of->field_body->value()['safe_value'],
     ];
   }
 
@@ -771,9 +804,15 @@ function mediacommons_api_node_metadata($entity) {
     $reviews = [];
   }
 
+  $entity_url = $base_url . drupal_get_path_alias("node/" . $entity->nid);
+
+  $parse_url = parse_url($entity_url);
+
   return (object) [
     'id' => $entity->nid,
     'title' => $entity->title,
+    'article_path' => $parse_url['path'],
+    'article_order_within' => (int) array_search(['nid' => $entity->nid], $field_part_of->field_spokes['und']) + 1,
     'embed' => $embeds,
     'body' => $body['safe_value'],
     'tags' => $taxonomy['tags'],
