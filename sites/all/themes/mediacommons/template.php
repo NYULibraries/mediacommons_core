@@ -8,7 +8,7 @@
  * @see https://drupal.org/node/1728096
  */
 
-const MEDIACOMMONS_DOMAIN_PLACEHOLDER = 'http://[MEDIACOMMONS_DOMAIN]/';
+const MEDIACOMMONS_DOMAIN_PLACEHOLDER = 'https://[MEDIACOMMONS_DOMAIN]/';
 
 /**
  * Implementation of hook_theme().
