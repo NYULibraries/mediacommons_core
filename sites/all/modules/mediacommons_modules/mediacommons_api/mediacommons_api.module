@@ -664,8 +664,6 @@ function mediacommons_api_node_metadata($entity) {
       $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
     }
  
-    // research_interests: field_taxonomy
-
     $biography = $c->field_bio->value();
     if ($biography && isset($biography['safe_value'])) {
       $biography = $biography['safe_value'];
@@ -721,13 +719,30 @@ function mediacommons_api_node_metadata($entity) {
         $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
       }
 
+      $biography = $c->field_bio->value();
+      if ($biography && isset($biography['safe_value'])) {
+        $biography = $biography['safe_value'];
+      } else {
+        $biography = '';
+      }
+
       $hub_editors[] = [
+        'uid' => $contributor->uid,
+        'uuid' => $contributor->uuid,
+        // could use $contributor->realname
         'name' => $c->field_profile_name->value() ? $c->field_profile_name->value() : $contributor->name,
         'title' => $c->field_title->value(),
         'mail' => $c->mail->value(),
         'picture' => $picture,
         'url' => $c->field_url->value(),
         'organization' => $o->name,
+        'biography' => $biography,
+        'research_interests' => $c->field_taxonomy->value(),
+        'social_links' => [
+          'twitter' => $c->field_twitter->value(),
+          'aim' => $c->field_aim->value(),
+          'skype' => $c->field_skype->value(),
+        ],
       ];
     }
 
@@ -739,13 +754,29 @@ function mediacommons_api_node_metadata($entity) {
       } else {
         $picture = 'http://www.gravatar.com/avatar/' . strtolower(md5($contributor->mail)) . '.jpg?d=identicon&s=150&r=G';
       }
+      $biography = $c->field_bio->value();
+      if ($biography && isset($biography['safe_value'])) {
+        $biography = $biography['safe_value'];
+      } else {
+        $biography = '';
+      }
       $hub_coeditors[] = [
+        'uid' => $contributor->uid,
+        'uuid' => $contributor->uuid,
+        // could use $contributor->realname
         'name' => $c->field_profile_name->value() ? $c->field_profile_name->value() : $contributor->name,
         'title' => $c->field_title->value(),
         'mail' => $c->mail->value(),
         'picture' => $picture,
         'url' => $c->field_url->value(),
         'organization' => $o->name,
+        'biography' => $biography,
+        'research_interests' => $c->field_taxonomy->value(),
+        'social_links' => [
+          'twitter' => $c->field_twitter->value(),
+          'aim' => $c->field_aim->value(),
+          'skype' => $c->field_skype->value(),
+        ],
       ];
     }
 
@@ -758,6 +789,8 @@ function mediacommons_api_node_metadata($entity) {
     $hub_parse_url = parse_url($hub_url);
   
     $part_of[] = [
+      'id' => $field_part_of->nid,
+      'uuid' => $field_part_of->uuid,
       'title' => $field_part_of->title,
       'path' => $hub_parse_url['path'],
       'editors' => $hub_editors,
@@ -816,8 +849,11 @@ function mediacommons_api_node_metadata($entity) {
 
   $parse_url = parse_url($entity_url);
 
+  die();
+
   return (object) [
     'id' => $entity->nid,
+    'uuid' => $entity->uuid,
     'title' => $entity->title,
     'article_path' => $parse_url['path'],
     'article_order_within' => (int) array_search(['nid' => $entity->nid], $field_part_of->field_spokes['und']) + 1,
